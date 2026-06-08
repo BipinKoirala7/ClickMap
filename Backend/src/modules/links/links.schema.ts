@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-const linkSchema = z.object({
+export const linkSchema = z.object({
   id: z.nanoid(),
   shortCode: z.string().max(10),
   originalUrl: z.url(),
@@ -24,3 +24,4 @@ export const createLinkSchema = z.object({
 export const updateLinkSchema = createLinkSchema; // We need to understand first how we want to update the link
 
 export type link = z.infer<typeof linkSchema>;
+export type createLinkDto = z.infer<typeof createLinkSchema>;
