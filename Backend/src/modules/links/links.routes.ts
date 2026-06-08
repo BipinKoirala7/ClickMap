@@ -1,4 +1,9 @@
-import { Router } from "express";
+import {
+  Router,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 
 const linkRouter = Router();
 
