@@ -1,27 +1,17 @@
-import * as z from "zod";
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
+import { link } from "@/config/schema.ts";
 
-export const linkSchema = z.object({
-  id: z.nanoid(),
-  shortCode: z.string().max(10),
-  originalUrl: z.url(),
-  userId: z.nanoid(),
-  title: z.string().min(2).max(50),
-  isCustomCode: z.boolean(),
-  expiresAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
+export const createLinkSchema = createInsertSchema(link).openapi("CreateLink");
+export const selectLinkSchema = createSelectSchema(link).openapi("SelectLink");
+export const updateLinkSchema = createUpdateSchema(link).openapi("UpdateLink");
 
-export const createLinkSchema = z.object({
-  shortCode: z.string().max(10),
-  originalUrl: z.url(),
-  userId: z.nanoid(),
-  title: z.string().min(2).max(50),
-  isCustomCode: z.boolean(),
-  expiresAt: z.date().nullable(),
-});
+export type CreateLinkDto = typeof createLinkSchema.type;
+export type SelectLinkDto = typeof selectLinkSchema.type;
+export type UpdateLinkDto = typeof updateLinkSchema.type;
 
-export const updateLinkSchema = createLinkSchema; // We need to understand first how we want to update the link
-
-export type link = z.infer<typeof linkSchema>;
-export type createLinkDto = z.infer<typeof createLinkSchema>;
+export type Link = typeof link.$inferSelect;
+export type NewLink = typeof link.$inferInsert;

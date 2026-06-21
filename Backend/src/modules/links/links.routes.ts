@@ -1,13 +1,18 @@
+import { Router } from "express";
 import {
-  Router,
-  type Request,
-  type Response,
-  type NextFunction,
-} from "express";
-import { createLinnk } from "./links.controller.js";
+  createLinkController,
+  deleteLinkController,
+  getAllLinksController,
+  getLinkController,
+  updateLinkController,
+} from "./links.controller.ts";
 
 const linkRouter = Router();
 
-linkRouter.post("/", createLinnk);
+linkRouter.post("/", createLinkController);
+linkRouter.get("/", getAllLinksController);
+linkRouter.get("/:id", getLinkController);
+linkRouter.put("/:id", updateLinkController);
+linkRouter.delete("/:id", deleteLinkController);
 
 export default linkRouter;
