@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 
-export async function createUserController(req: Request, res: Response) {
+export async function getUserController(req: Request, res: Response) {
   res.status(200).json({ message: "Done" });
 }
 
