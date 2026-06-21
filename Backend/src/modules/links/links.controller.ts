@@ -21,6 +21,10 @@ export async function updateLinkController(req: Request, res: Response) {
   res.status(200).json({ message: "Done" });
 }
 
-export async function deleteLinkController(req: Request, res: Response) {
+export async function deactivateLinkController(req: Request, res: Response) {
+  res.status(200).json({ message: "Done" });
+}
+
+export async function activateLinkController(req: Request, res: Response) {
   res.status(200).json({ message: "Done" });
 }
