@@ -1,4 +1,4 @@
-import { users } from "@/config/schema.ts";
+import { users } from "@/db/schema.ts";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const registerUserSchema = createInsertSchema(users)

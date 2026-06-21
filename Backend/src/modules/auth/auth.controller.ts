@@ -1,21 +1,19 @@
 import { type Request, type Response } from "express";
 
-export async function registerUserController(req: Request, res: Response) {
-  res.status(200).json({ message: "Done" });
-}
-
-export async function loginUserController(req: Request, res: Response) {
-  res.status(200).json({ message: "Done" });
-}
-
-export async function logoutUserController(req: Request, res: Response) {
-  res.status(200).json({ message: "Done" });
-}
-
 export async function deActivateUserController(req: Request, res: Response) {
+  const supabaseId = req.user!.sub as string;
+  if (!supabaseId) {
+    res.status(400).json({ error: "Invalid user" });
+    return;
+  }
   res.status(200).json({ message: "Done" });
 }
 
-export async function refreshTokenController(req: Request, res: Response) {
+export async function activateUserController(req: Request, res: Response) {
+  const supabaseId = req.user!.sub as string;
+  if (!supabaseId) {
+    res.status(400).json({ error: "Invalid user" });
+    return;
+  }
   res.status(200).json({ message: "Done" });
 }

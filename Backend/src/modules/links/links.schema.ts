@@ -3,7 +3,7 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import { link } from "@/config/schema.ts";
+import { link } from "@/db/schema.ts";
 
 export const createLinkSchema = createInsertSchema(link).openapi("CreateLink");
 export const selectLinkSchema = createSelectSchema(link).openapi("SelectLink");

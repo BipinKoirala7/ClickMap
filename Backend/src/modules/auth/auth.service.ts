@@ -1,8 +1,12 @@
-import type { RegisterUserDto } from "./auth.schema.ts";
+import {
+  findBySupabaseId,
+  updateUserStatus,
+} from "@/modules/user/user.repository.ts";
 
-export async function registerUser(
-  userData: RegisterUserDto,
-): Promise<boolean> {
-  // Implementation for registering a new user
-  return true;
+import { UserNotFound } from "@/errors/Errors.ts";
+
+export async function setActiveStatus(supabaseId: string, isActive: boolean) {
+  const user = await findBySupabaseId(supabaseId);
+  if (!user) throw new UserNotFound("User not found");
+  return updateUserStatus(user.id, isActive);
 }

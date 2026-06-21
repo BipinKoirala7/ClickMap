@@ -1,4 +1,4 @@
-import { clickEvents } from "@/config/schema.ts";
+import { clickEvents } from "@/db/schema.ts";
 import {
   createInsertSchema,
   createSelectSchema,

@@ -1,5 +1,5 @@
 import { createUpdateSchema, createSelectSchema } from "drizzle-zod";
-import { users } from "@/config/schema.ts";
+import { users } from "@/db/schema.ts";
 
 export const publicUserSchema = createSelectSchema(users)
   .omit({
