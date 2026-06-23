@@ -34,20 +34,15 @@ export const link = p.pgTable("links", {
 export const clickEvents = p.pgTable("click_events", {
   id: p.varchar().primaryKey(),
   linkId: p.varchar().references(() => link.id),
-
   clickedAt: p.timestamp().notNull(),
-
   referer: p.varchar(),
-
   ip: p.varchar(),
   country: p.varchar(),
   city: p.varchar(),
-
   userAgent: p.varchar(),
   browser: p.varchar(),
   borwserVersion: p.varchar(),
   os: p.varchar(),
   device: p.varchar(),
-
   isBot: p.boolean(),
 });

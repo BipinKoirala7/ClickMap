@@ -1,5 +1,6 @@
 import { createUpdateSchema, createSelectSchema } from "drizzle-zod";
 import { users } from "@/db/schema.ts";
+import z from "zod";
 
 export const publicUserSchema = createSelectSchema(users)
   .omit({
@@ -14,6 +15,7 @@ export const updateUserSchema = createUpdateSchema(users)
   })
   .openapi("UpdateUser");
 
-export type UpdateUserDto = typeof updateUserSchema.type;
+export type PublicUserDto = z.infer<typeof publicUserSchema>;
+export type UpdateUserDto = z.infer<typeof updateUserSchema>;
 
 export type User = typeof users.$inferSelect;
