@@ -1,12 +1,10 @@
 import { Router } from "express";
-import { registerUserController } from "./auth.controller.ts";
+import { deActivateUserController } from "./auth.controller.ts";
+import { activateLinkController } from "../links/links.controller.ts";
 
 const authRouter = Router();
 
-authRouter.post("/register", registerUserController);
-authRouter.post("/login", registerUserController);
-authRouter.post("/logout", registerUserController);
-authRouter.post("/deactivate", registerUserController);
-authRouter.post("/refresh-token", registerUserController);
+authRouter.post("/activate", activateLinkController);
+authRouter.post("/deactivate", deActivateUserController);
 
 export default authRouter;

@@ -1,19 +1,23 @@
+import { AuthenticationError } from "@/errors/Errors.ts";
+import RestApiResponse from "@/types/RestApiResponse.ts";
 import { type Request, type Response } from "express";
 
 export async function deActivateUserController(req: Request, res: Response) {
-  const supabaseId = req.user!.sub as string;
+  const supabaseId = req.user?.sub as string;
   if (!supabaseId) {
-    res.status(400).json({ error: "Invalid user" });
-    return;
+    throw new AuthenticationError();
   }
-  res.status(200).json({ message: "Done" });
+  res
+    .status(200)
+    .json(RestApiResponse.success(200, "User Account DeActivated", null));
 }
 
 export async function activateUserController(req: Request, res: Response) {
   const supabaseId = req.user!.sub as string;
   if (!supabaseId) {
-    res.status(400).json({ error: "Invalid user" });
-    return;
+    throw new AuthenticationError();
   }
-  res.status(200).json({ message: "Done" });
+  res
+    .status(200)
+    .json(RestApiResponse.success(200, "User Account Activated", null));
 }

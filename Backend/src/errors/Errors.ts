@@ -2,7 +2,7 @@ import AppError from "./CustomError.ts";
 
 /* User Related Errors */
 
-class UserNotFoundError extends AppError {
+export class UserNotFoundError extends AppError {
   constructor(message = "Resource not found") {
     super(message, 404);
   }
@@ -10,22 +10,26 @@ class UserNotFoundError extends AppError {
 
 /* Authentication Related Errors */
 
-class UnAuthenticatedUserError extends AppError {
+export class AuthenticationError extends AppError {
   constructor(message = "User is not logged In") {
     super(message, 401);
   }
 }
 
-class UnAuthorizedActionError extends AppError {
+export class AuthorizationError extends AppError {
   constructor(message = "You do not have permission to perform this action") {
     super(message, 403);
   }
 }
 
-class TokenExpredError extends AppError {
-  constructor(message = "User Session expred, Please Log in again") {
+export class MissingTokenError extends AppError {
+  constructor(message = "User is not logged In") {
     super(message, 401);
   }
 }
 
-export { UserNotFoundError };
+export class TokenExpredError extends AppError {
+  constructor(message = "User Session expred, Please Log in again") {
+    super(message, 401);
+  }
+}

@@ -1,16 +1,17 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { jwtVerify } from "jose";
 import { PROJECT_JWKS } from "@/config/supabaseJwks.ts";
+import { AuthenticationError, MissingTokenError } from "@/errors/Errors.ts";
 
 export async function authenticate(
   req: Request,
-  res: Response,
+  _: Response,
   next: NextFunction,
 ): Promise<void> {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) {
-    res.status(401).json({ error: "No token provided" });
-    return;
+    console.log("Tokens are missing in the request");
+    throw new MissingTokenError();
   }
 
   try {
@@ -18,7 +19,7 @@ export async function authenticate(
     req.user = payload;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid or expired token" });
-    return;
+    console.log("User is not logged in or authenticated");
+    throw new AuthenticationError();
   }
 }
