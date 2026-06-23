@@ -1,4 +1,4 @@
-class CustomError extends Error {
+class AppError extends Error {
   public readonly status: string;
   public readonly statusCode: number;
   public readonly isOperational: boolean;
@@ -13,4 +13,4 @@ class CustomError extends Error {
   }
 }
 
-export default CustomError;
+export default AppError;
