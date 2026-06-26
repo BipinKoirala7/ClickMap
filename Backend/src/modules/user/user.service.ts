@@ -7,16 +7,14 @@ import {
   type UpdateUserDto,
 } from "./user.schema.ts";
 
-export async function getUserBySupabaseId(
-  supabaseId: string,
-): Promise<PublicUserDto> {
+async function getUserBySupabaseId(supabaseId: string): Promise<PublicUserDto> {
   const user = await findBySupabaseId(supabaseId);
   if (!user) throw new UserNotFoundError();
 
   return publicUserSchema.parse(user);
 }
 
-export async function updateUser(
+async function updateUser(
   supabaseId: string,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
@@ -28,3 +26,15 @@ export async function updateUser(
   const info = updateUserSchema.parse(updatedUserInfo);
   await updateUserBySupabaseId(supabaseId, info);
 }
+
+async function getUserIdBySupabaseId(supabaseId: string): Promise<string> {
+  const user = await findBySupabaseId(supabaseId);
+  if (!user) throw new UserNotFoundError();
+
+  return user.id;
+}
+export const userService = {
+  getUserBySupabaseId,
+  updateUser,
+  getUserIdBySupabaseId,
+};

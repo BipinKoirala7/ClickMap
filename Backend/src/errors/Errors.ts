@@ -1,4 +1,4 @@
-import AppError from "./CustomError.ts";
+import AppError from "./AppError.ts";
 
 /* User Related Errors */
 
@@ -31,5 +31,25 @@ export class MissingTokenError extends AppError {
 export class TokenExpredError extends AppError {
   constructor(message = "User Session expred, Please Log in again") {
     super(message, 401);
+  }
+}
+
+/* Link Related Erros */
+
+export class LinkNotFoundError extends AppError {
+  constructor(message = "Link Not Found") {
+    super(message, 404);
+  }
+}
+
+export class LinkAlreadyActiveError extends AppError {
+  constructor(message = "Link is already active") {
+    super(message, 400);
+  }
+}
+
+export class LinkAlreadyDeactivatedError extends AppError {
+  constructor(message = "Link is already deactivated") {
+    super(message, 400);
   }
 }

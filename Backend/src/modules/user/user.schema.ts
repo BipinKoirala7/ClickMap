@@ -4,6 +4,7 @@ import z from "zod";
 
 export const publicUserSchema = createSelectSchema(users)
   .omit({
+    id: true,
     password: true,
   })
   .openapi("User");

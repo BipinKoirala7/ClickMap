@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import AppError from "./errors/CustomError.ts";
+import AppError from "./errors/AppError.ts";
 import RestApiResponse from "./types/RestApiResponse.ts";
 import { ZodError } from "zod";
 

@@ -19,7 +19,7 @@ export const users = p.pgTable("users", {
     .$onUpdate(() => new Date()),
 });
 
-export const link = p.pgTable("links", {
+export const links = p.pgTable("links", {
   id: p.varchar().primaryKey(),
   shortCode: p.varchar().notNull().unique(),
   originalUrl: p.text().notNull(),
@@ -29,6 +29,7 @@ export const link = p.pgTable("links", {
     .notNull(),
   title: p.varchar().notNull(),
   isCustomCode: p.boolean().notNull(),
+  isActive: p.boolean().notNull(),
   expiresAt: p.timestamp().notNull(),
   createdAt: p.timestamp().notNull(),
   updatedAt: p.timestamp().notNull(),
@@ -36,7 +37,7 @@ export const link = p.pgTable("links", {
 
 export const clickEvents = p.pgTable("click_events", {
   id: p.varchar().primaryKey(),
-  linkId: p.varchar().references(() => link.id),
+  linkId: p.varchar().references(() => links.id),
   clickedAt: p.timestamp().notNull(),
   referer: p.varchar(),
   ip: p.varchar(),
