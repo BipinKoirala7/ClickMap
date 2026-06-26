@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -53,8 +54,9 @@ export default function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex h-12 items-center px-2">
-          <Logo className="text-sidebar-foreground" />
+        <div className="flex h-12 items-center justify-between px-2 group-data-[collapsible=icon]:justify-center">
+          <Logo className="text-sidebar-foreground group-data-[collapsible=icon]:hidden" />
+          <SidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -67,9 +69,13 @@ export default function DashboardSidebar() {
                   <SidebarMenuButton
                     isActive={isActive(item.url, item.exact)}
                     tooltip={item.title}
+                    className="h-9 gap-3 data-active:bg-primary/10 data-active:text-primary"
                   >
-                    <Link to={item.url}>
-                      <item.icon />
+                    <Link
+                      to={item.url}
+                      className="flex items-center gap-3 w-full"
+                    >
+                      <item.icon className="size-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
