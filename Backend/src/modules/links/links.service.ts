@@ -2,7 +2,6 @@ import {
   LinkAlreadyActiveError,
   LinkAlreadyDeactivatedError,
   LinkNotFoundError,
-  UserNotFoundError,
 } from "@/errors/Errors.ts";
 import {
   createLinkSchema,
@@ -14,63 +13,68 @@ import {
 import { linkRepository } from "./links.repository.ts";
 import { userService } from "../user/user.service.ts";
 
-export async function createLink(supabaseId: string, dto: CreateLinkDto) {
-  if (!(await userService.getUserBySupabaseId(supabaseId)))
-    throw new UserNotFoundError();
+async function createLink(supabaseId: string, dto: CreateLinkDto) {
+  const user = await userService.getBySupabaseId(supabaseId);
   const link = createLinkSchema.parse(dto);
   const newLink: NewLink = {
-    userId: await userService.getUserIdBySupabaseId(supabaseId),
+    userId: user.id,
     ...link,
   };
 
   await linkRepository.createLink(newLink);
 }
 
-export async function getUserLinks(supabaseId: string) {
-  if (!(await userService.getUserBySupabaseId(supabaseId)))
-    throw new UserNotFoundError();
-
-  const userId = await userService.getUserIdBySupabaseId(supabaseId);
-  return await linkRepository.getUserLinks(userId);
+async function getUserLinks(supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  return await linkRepository.getUserLinks(user.id);
 }
 
-export async function getLinkInfo(linkId: string, supabaseId: string) {
-  const userId = await userService.getUserIdBySupabaseId(supabaseId);
-  const link = await linkRepository.getLink(linkId, userId);
+async function getLinkInfo(linkId: string, supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   return link;
 }
 
-export async function updateLink(
+async function updateLink(
   linkId: string,
   supabaseId: string,
   linkData: UpdateLinkDto,
 ) {
-  const userId = await userService.getUserIdBySupabaseId(supabaseId);
-  const link = await linkRepository.getLink(linkId, userId);
+  const user = await userService.getBySupabaseId(supabaseId);
+  const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   const data = updateLinkSchema.parse(linkData);
 
-  return await linkRepository.updateLink(linkId, userId, data);
+  return await linkRepository.updateLink(linkId, user.id, data);
 }
 
-export async function activateLink(linkId: string, supabaseId: string) {
-  const userId = await userService.getUserIdBySupabaseId(supabaseId);
-  const link = await linkRepository.getLink(linkId, userId);
+async function activateLink(linkId: string, supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   if (link.isActive) throw new LinkAlreadyActiveError();
-  return await linkRepository.activateLink(linkId, userId);
+  return await linkRepository.activateLink(linkId, user.id);
 }
 
-export async function deactivateLink(linkId: string, supabaseId: string) {
-  const userId = await userService.getUserIdBySupabaseId(supabaseId);
-  const link = await linkRepository.getLink(linkId, userId);
+async function deactivateLink(linkId: string, supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   if (!link.isActive)
     throw new LinkAlreadyDeactivatedError("Link is already deactivated");
-  return await linkRepository.deactivateLink(linkId, userId);
+  return await linkRepository.deactivateLink(linkId, user.id);
 }
+
+export const linkService = {
+  createLink,
+  getUserLinks,
+  getLinkInfo,
+  updateLink,
+  activateLink,
+  deactivateLink,
+};

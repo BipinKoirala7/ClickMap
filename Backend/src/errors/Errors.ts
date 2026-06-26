@@ -8,6 +8,30 @@ export class UserNotFoundError extends AppError {
   }
 }
 
+export class UserAlreadyExistsError extends AppError {
+  constructor(message = "User already exists") {
+    super(message, 400);
+  }
+}
+
+export class UserNotActiveError extends AppError {
+  constructor(message = "User is not active") {
+    super(message, 403);
+  }
+}
+
+export class UserAlreadyActiveError extends AppError {
+  constructor(message = "User is already active") {
+    super(message, 400);
+  }
+}
+
+export class UserAlreadyDeactivatedError extends AppError {
+  constructor(message = "User is already deactivated") {
+    super(message, 400);
+  }
+}
+
 /* Authentication Related Errors */
 
 export class AuthenticationError extends AppError {

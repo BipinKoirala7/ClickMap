@@ -7,7 +7,14 @@ import { links } from "@/db/schema.ts";
 import type z from "zod";
 
 export const createLinkSchema = createInsertSchema(links)
-  .omit({ userId: true })
+  .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
+  .refine(
+    (data) => data.expiresAt === undefined || data.expiresAt > new Date(),
+    {
+      message: "expiresAt must be in the future",
+      path: ["expiresAt"],
+    },
+  )
   .openapi("CreateLink");
 export const publicLinkSchema = createSelectSchema(links)
   .omit({ userId: true })

@@ -1,12 +1,27 @@
+import { userRepository } from "@/modules/user/user.repository.ts";
+
 import {
-  findBySupabaseId,
-  updateUserStatus,
-} from "@/modules/user/user.repository.ts";
+  UserAlreadyDeactivatedError,
+  UserAlreadyActiveError,
+  UserNotFoundError,
+} from "@/errors/Errors.ts";
+import { userService } from "../user/user.service.ts";
 
-import { UserNotFoundError } from "@/errors/Errors.ts";
+async function activateUserStatus(supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  if (user.isActive) throw new UserAlreadyActiveError();
 
-export async function setActiveStatus(supabaseId: string, isActive: boolean) {
-  const user = await findBySupabaseId(supabaseId);
-  if (!user) throw new UserNotFoundError("User not found");
-  return updateUserStatus(user.id, isActive);
+  return userRepository.updateUserStatus(user.id, true);
 }
+
+async function deactivateUserStatus(supabaseId: string) {
+  const user = await userService.getBySupabaseId(supabaseId);
+  if (!user.isActive) throw new UserAlreadyDeactivatedError();
+
+  return userRepository.updateUserStatus(user.id, false);
+}
+
+export const authService = {
+  activateUserStatus,
+  deactivateUserStatus,
+};

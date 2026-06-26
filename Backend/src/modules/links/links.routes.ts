@@ -1,23 +1,16 @@
 import { Router } from "express";
-import {
-  createLinkController,
-  getAllLinksController,
-  getLinkController,
-  updateLinkController,
-  deactivateLinkController,
-  activateLinkController,
-} from "./links.controller.ts";
+import { linkController } from "./links.controller.ts";
 import { authenticate } from "@/middleware/authenticate.ts";
 
 const linkRouter = Router();
 
 linkRouter.use(authenticate);
 
-linkRouter.post("/", createLinkController);
-linkRouter.get("/", getAllLinksController);
-linkRouter.get("/:id", getLinkController);
-linkRouter.put("/:id", updateLinkController);
-linkRouter.patch("/:id/deactivate", deactivateLinkController);
-linkRouter.patch("/:id/activate", activateLinkController);
+linkRouter.post("/", linkController.createLinkController);
+linkRouter.get("/", linkController.getAllLinksController);
+linkRouter.get("/:id", linkController.getLinkController);
+linkRouter.put("/:id", linkController.updateLinkController);
+linkRouter.patch("/:id/deactivate", linkController.deactivateLinkController);
+linkRouter.patch("/:id/activate", linkController.activateLinkController);
 
 export default linkRouter;

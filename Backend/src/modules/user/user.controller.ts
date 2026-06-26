@@ -3,7 +3,7 @@ import { type Request, type Response } from "express";
 import { type PublicUserDto } from "./user.schema.ts";
 import { userService } from "./user.service.ts";
 
-export async function getUserController(req: Request, res: Response) {
+async function getUserController(req: Request, res: Response) {
   const supabaseId = req.user!.sub;
   res
     .status(200)
@@ -16,8 +16,13 @@ export async function getUserController(req: Request, res: Response) {
     );
 }
 
-export async function updateUserController(req: Request, res: Response) {
+async function updateUserController(req: Request, res: Response) {
   const supabaseId = req.user!.sub;
   await userService.updateUser(supabaseId, req.body);
   res.status(200).json(RestApiResponse.success(200, "User Info Updated", null));
 }
+
+export const userController = {
+  getUserController,
+  updateUserController,
+};
