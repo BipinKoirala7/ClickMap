@@ -7,11 +7,13 @@ import { link } from "@/db/schema.ts";
 import type z from "zod";
 
 export const createLinkSchema = createInsertSchema(link).openapi("CreateLink");
-export const selectLinkSchema = createSelectSchema(link).openapi("SelectLink");
+export const publicLinkSchema = createSelectSchema(link)
+  .omit({ userId: true })
+  .openapi("SelectLink");
 export const updateLinkSchema = createUpdateSchema(link).openapi("UpdateLink");
 
 export type CreateLinkDto = z.infer<typeof createLinkSchema>;
-export type SelectLinkDto = z.infer<typeof selectLinkSchema>;
+export type PublicLinkDto = z.infer<typeof publicLinkSchema>;
 export type UpdateLinkDto = z.infer<typeof updateLinkSchema>;
 
 export type Link = typeof link.$inferSelect;

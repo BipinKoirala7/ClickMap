@@ -1,12 +1,10 @@
-import { AuthenticationError } from "@/errors/Errors.ts";
 import RestApiResponse from "@/types/RestApiResponse.ts";
 import { type Request, type Response } from "express";
 import { type PublicUserDto } from "./user.schema.ts";
-import { getUserBySupabaseId } from "./user.service.ts";
+import { getUserBySupabaseId, updateUser } from "./user.service.ts";
 
 export async function getUserController(req: Request, res: Response) {
-  const supabaseId = req.user?.sub;
-  if (!supabaseId) throw new AuthenticationError();
+  const supabaseId = req.user!.sub;
   res
     .status(200)
     .json(
@@ -19,9 +17,7 @@ export async function getUserController(req: Request, res: Response) {
 }
 
 export async function updateUserController(req: Request, res: Response) {
-  const supabaseId = req.user?.sub;
-  if (!supabaseId) throw new AuthenticationError();
-  await res
-    .status(200)
-    .json(RestApiResponse.success(200, "User Info Updated", null));
+  const supabaseId = req.user!.sub;
+  await updateUser(supabaseId, req.body);
+  res.status(200).json(RestApiResponse.success(200, "User Info Updated", null));
 }

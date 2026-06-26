@@ -1,5 +1,5 @@
 import { AuthenticationError, UserNotFoundError } from "@/errors/Errors.ts";
-import { findBySupabaseId, updateUser } from "./user.repository.ts";
+import { findBySupabaseId, updateUserBySupabaseId } from "./user.repository.ts";
 import {
   publicUserSchema,
   updateUserSchema,
@@ -16,11 +16,15 @@ export async function getUserBySupabaseId(
   return publicUserSchema.parse(user);
 }
 
-export async function updateuser(
+export async function updateUser(
   supabaseId: string,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
   if (!supabaseId) throw new AuthenticationError();
+
+  const existingUser = await findBySupabaseId(supabaseId);
+  if (!existingUser) throw new UserNotFoundError();
+
   const info = updateUserSchema.parse(updatedUserInfo);
-  await updateUser(supabaseId, info);
+  await updateUserBySupabaseId(supabaseId, info);
 }

@@ -18,8 +18,9 @@ export async function authenticate(
     const { payload } = await jwtVerify(token, PROJECT_JWKS);
     req.user = payload;
     next();
-  } catch {
-    console.log("User is not logged in or authenticated");
+  } catch (error) {
+    console.error("Jwt Verification error");
+    console.error(error);
     throw new AuthenticationError();
   }
 }

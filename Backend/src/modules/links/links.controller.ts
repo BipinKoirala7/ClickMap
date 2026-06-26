@@ -3,7 +3,6 @@ import { createLinkSchema } from "./links.schema.ts";
 import { createLink } from "./links.service.ts";
 
 export async function createLinkController(req: Request, res: Response) {
-  const body = createLinkSchema.parse(req.body);
   await createLink(req.body);
 
   res.status(200).json({ message: "Done" });

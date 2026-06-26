@@ -15,7 +15,7 @@ export async function findBySupabaseId(supabaseId: string) {
   });
 }
 
-export async function updateUser(
+export async function updateUserBySupabaseId(
   supabaseId: string,
   { name, userName }: UpdateUserDto,
 ) {

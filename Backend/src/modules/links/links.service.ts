@@ -1,3 +1,5 @@
-import type { CreateLinkDto } from "./links.schema.ts";
+import { createLinkSchema, type CreateLinkDto } from "./links.schema.ts";
 
-export async function createLink(dto: CreateLinkDto) {}
+export async function createLink(dto: CreateLinkDto) {
+  const body = createLinkSchema.parse(dto);
+}

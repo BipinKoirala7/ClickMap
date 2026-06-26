@@ -23,12 +23,15 @@ export const link = p.pgTable("links", {
   id: p.varchar().primaryKey(),
   shortCode: p.varchar().notNull().unique(),
   originalUrl: p.text().notNull(),
-  userId: p.varchar().references(() => users.id),
-  title: p.varchar(),
-  isCustomCode: p.boolean(),
-  expiresAt: p.timestamp(),
-  createdAt: p.timestamp(),
-  updatedAt: p.timestamp(),
+  userId: p
+    .varchar()
+    .references(() => users.id)
+    .notNull(),
+  title: p.varchar().notNull(),
+  isCustomCode: p.boolean().notNull(),
+  expiresAt: p.timestamp().notNull(),
+  createdAt: p.timestamp().notNull(),
+  updatedAt: p.timestamp().notNull(),
 });
 
 export const clickEvents = p.pgTable("click_events", {

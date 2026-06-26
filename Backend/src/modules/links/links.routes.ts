@@ -7,8 +7,11 @@ import {
   deactivateLinkController,
   activateLinkController,
 } from "./links.controller.ts";
+import { authenticate } from "@/middleware/authenticate.ts";
 
 const linkRouter = Router();
+
+linkRouter.use(authenticate);
 
 linkRouter.post("/", createLinkController);
 linkRouter.get("/", getAllLinksController);
