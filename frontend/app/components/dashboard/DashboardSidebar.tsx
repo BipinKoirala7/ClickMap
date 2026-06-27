@@ -24,6 +24,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -67,6 +68,7 @@ export default function DashboardSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
+                    asChild
                     isActive={isActive(item.url, item.exact)}
                     tooltip={item.title}
                     className="h-9 gap-3 data-active:bg-primary/10 data-active:text-primary"
@@ -105,26 +107,32 @@ export default function DashboardSidebar() {
               </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="right" align="end" className="w-56">
-            <DropdownMenuLabel>My account</DropdownMenuLabel>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My account</DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LuUser className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LuCreditCard className="mr-2 h-4 w-4" />
-              Billing
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LuSettings className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
+            <DropdownMenuGroup className={"gap-2"}>
+              <DropdownMenuItem>
+                <LuUser className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LuCreditCard className="mr-2 h-4 w-4" />
+                Billing
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LuSettings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LuLogOut className="mr-2 h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <LuLogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>

@@ -1,3 +1,5 @@
+export type LinkStatus = "active" | "expired" | "paused";
+
 export type Link = {
   id: string;
   short: string;
@@ -5,7 +7,7 @@ export type Link = {
   clicks: number;
   uniqueVisitors: number;
   createdAt: string;
-  status: "active" | "expired" | "paused";
+  status: LinkStatus;
 };
 
 export const links: Link[] = [
