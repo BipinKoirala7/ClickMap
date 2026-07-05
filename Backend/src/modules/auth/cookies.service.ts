@@ -1,4 +1,6 @@
 import type { Request, Response } from "express";
+import type { User } from "./auth.schema.ts";
+import { jwtService } from "./jwt.service.ts";
 
 function getAccessCookiesFromRequest(req: Request): string | null {
   return req.cookies["accessToken"] ?? null;
@@ -8,7 +10,12 @@ function getRefreshCookiesFromRequest(req: Request): string | null {
   return req.cookies["refreshToken"] ?? null;
 }
 
-function setAccessCookiesInResponse(res: Response, accessToken: string): void {
+async function setAccessCookiesInResponse(
+  res: Response,
+  user: User,
+): Promise<void> {
+  const accessToken = await jwtService.createAccessToken(user);
+
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
@@ -18,10 +25,11 @@ function setAccessCookiesInResponse(res: Response, accessToken: string): void {
   });
 }
 
-function setRefreshCookiesInResponse(
+async function setRefreshCookiesInResponse(
   res: Response,
-  refreshToken: string,
-): void {
+  userId: string,
+): Promise<void> {
+  const refreshToken = await jwtService.createRefreshToken(userId);
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,

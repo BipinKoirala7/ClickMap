@@ -23,3 +23,5 @@ export async function authenticate(
     throw new AuthenticationError();
   }
 }
+
+export async function refreshTokensInCookies() {}

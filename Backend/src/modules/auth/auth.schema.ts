@@ -1,7 +1,8 @@
 import { users } from "@/db/schema.ts";
+
+import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-// Remove them as Supabase handles it
 export const registerUserSchema = createInsertSchema(users)
   .pick({
     email: true,
@@ -18,7 +19,8 @@ export const loginUserSchema = createSelectSchema(users)
   })
   .openapi("LoginUser");
 
-// export type RegisterUserDto = typeof registerUserSchema.type;
-// export type LoginUserDto = typeof loginUserSchema.type;
+export type RegisterUserDto = z.infer<typeof registerUserSchema>;
+export type LoginUserDto = z.infer<typeof loginUserSchema>;
 
+export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

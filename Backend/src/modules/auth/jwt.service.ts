@@ -1,13 +1,15 @@
 import { config } from "@/config/index.ts";
 import { AuthenticationError } from "@/errors/Errors.ts";
 import * as jose from "jose";
+import type { User } from "./auth.schema.ts";
 
 const ACCESS_TOKEN_TYPE = "ACCESS_TOKEN";
 const REFRESH_TOKEN_TYPE = "REFRESH_TOKEN";
 const secret = new TextEncoder().encode(config.JWT_SECRET);
 
-async function createAccessToken(userId: string): Promise<string> {
+async function createAccessToken(user: User): Promise<string> {
   const payload = {
+    email: user.email,
     tokenType: ACCESS_TOKEN_TYPE,
   };
 
@@ -16,7 +18,7 @@ async function createAccessToken(userId: string): Promise<string> {
   };
 
   const accessToken = await new jose.SignJWT(payload)
-    .setSubject(userId)
+    .setSubject(user.id)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(new Date())
     .setExpirationTime(options.expiresIn)
@@ -45,7 +47,7 @@ async function createRefreshToken(userId: string): Promise<string> {
 }
 
 async function verifyAccessToken(accessToken: string): Promise<string> {
-  const { payload } = await jose.jwtDecrypt(accessToken, secret);
+  const { payload } = await jose.jwtVerify(accessToken, secret);
 
   if (payload.tokenType !== ACCESS_TOKEN_TYPE) {
     throw new AuthenticationError();
@@ -59,7 +61,7 @@ async function verifyAccessToken(accessToken: string): Promise<string> {
 }
 
 async function verifyRefreshToken(refreshToken: string): Promise<string> {
-  const { payload } = await jose.jwtDecrypt(refreshToken, secret);
+  const { payload } = await jose.jwtVerify(refreshToken, secret);
 
   if (payload.tokenType !== REFRESH_TOKEN_TYPE) {
     throw new AuthenticationError();

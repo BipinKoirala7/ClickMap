@@ -5,10 +5,11 @@ import {
   updateUserSchema,
   type PublicUserDto,
   type UpdateUserDto,
-  type User,
 } from "./user.schema.ts";
+import type { User } from "../auth/auth.schema.ts";
 
-async function getUserById(id: string): Promise<PublicUserDto> {
+async function getUserById(id: string | undefined): Promise<PublicUserDto> {
+  if (!id) throw new AuthenticationError();
   const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
 
@@ -16,7 +17,7 @@ async function getUserById(id: string): Promise<PublicUserDto> {
 }
 
 async function updateUser(
-  id: string,
+  id: string | undefined,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
   if (!id) throw new AuthenticationError();
@@ -36,8 +37,16 @@ async function getById(id: string): Promise<User> {
   return user;
 }
 
+async function getByEmail(email: string): Promise<User> {
+  const user = await userRepository.findByEmail(email);
+
+  if (!user) throw new UserNotFoundError();
+  return user;
+}
+
 export const userService = {
   getUserById,
   updateUser,
   getById,
+  getByEmail,
 };

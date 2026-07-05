@@ -5,7 +5,7 @@ import { userService } from "./user.service.ts";
 
 //  Change the id to get from the cookies
 async function getUserController(req: Request, res: Response) {
-  const id = req.user!.sub;
+  const id = req.userId;
   res
     .status(200)
     .json(
@@ -18,8 +18,8 @@ async function getUserController(req: Request, res: Response) {
 }
 
 async function updateUserController(req: Request, res: Response) {
-  const supabaseId = req.user!.sub;
-  await userService.updateUser(supabaseId, req.body);
+  const id = req.userId;
+  await userService.updateUser(id, req.body);
   res.status(200).json(RestApiResponse.success(200, "User Info Updated", null));
 }
 

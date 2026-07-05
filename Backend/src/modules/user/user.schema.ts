@@ -18,5 +18,3 @@ export const updateUserSchema = createUpdateSchema(users)
 
 export type PublicUserDto = z.infer<typeof publicUserSchema>;
 export type UpdateUserDto = z.infer<typeof updateUserSchema>;
-
-export type User = typeof users.$inferSelect;

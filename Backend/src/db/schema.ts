@@ -22,6 +22,25 @@ export const users = p.pgTable("users", {
     .$onUpdate(() => new Date()),
 });
 
+export const activeRefreshTokens = p.pgTable("active_refresh_tokens", {
+  id: p
+    .varchar()
+    .primaryKey()
+    .$default(() => nanoid()),
+  userId: p
+    .varchar()
+    .references(() => users.id)
+    .notNull(),
+  refreshToken: p.varchar().notNull(),
+  expiresAt: p.timestamp().notNull(),
+  createdAt: p.timestamp().notNull().defaultNow(),
+  updatedAt: p
+    .timestamp()
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 export const links = p.pgTable("links", {
   id: p
     .varchar()

@@ -1,12 +1,16 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Client } from "pg";
+import { Pool } from "pg";
 import { config } from "../config/index.ts";
-import { clickEvents, links, users } from "./schema.ts";
+import { activeRefreshTokens, clickEvents, links, users } from "./schema.ts";
 
-const connection = new Client({
+const connection = new Pool({
   connectionString: config.DATABASE_URL,
 });
 
+connection.addListener("connect", () => {
+  console.log("Database connected successfully");
+});
+
 export const db = drizzle(connection, {
-  schema: { users, links, clickEvents },
+  schema: { users, activeRefreshTokens, links, clickEvents },
 });
