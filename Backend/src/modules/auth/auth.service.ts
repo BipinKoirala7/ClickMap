@@ -7,13 +7,17 @@ import {
 } from "@/errors/Errors.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import {
+  activeRefreshTokenSchema,
   loginUserSchema,
   registerUserSchema,
+  type ActiveRefreshTokenDto,
   type NewUser,
   type User,
 } from "@/modules/auth/auth.schema.ts";
 import type { Response } from "express";
 import { cookiesService } from "./cookies.service.ts";
+import { authRepository } from "./auth.repository.ts";
+import { jwtService } from "./jwt.service.ts";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
@@ -30,11 +34,22 @@ async function registerUser(userData: any) {
 async function loginUser(loginData: any, res: Response) {
   const loginInfo = loginUserSchema.parse(loginData);
   const user: User = await userService.getByEmail(loginInfo.email);
-  await cookiesService.setRefreshCookiesInResponse(res, user.id);
-  await cookiesService.setAccessCookiesInResponse(res, user);
+  const refreshToken = await jwtService.createRefreshToken(user.id);
+  const accessToken = await jwtService.createAccessToken(user);
+  await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
+  await cookiesService.setAccessCookiesInResponse(res, accessToken);
+
+  await setActiveRefreshToken({
+    userId: user.id,
+    refreshToken,
+    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+  });
 }
 
-async function setActiveRefreshToken(refreshToken: string, userId: string) {}
+async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
+  const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
+  await authRepository.setActiveRefreshToken(info);
+}
 
 async function logout(res: Response) {
   cookiesService.clearCookiesInResponse(res);
@@ -64,4 +79,5 @@ export const authService = {
   logout,
   activateUserStatus,
   deactivateUserStatus,
+  setActiveRefreshToken,
 };

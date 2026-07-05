@@ -30,7 +30,8 @@ export const activeRefreshTokens = p.pgTable("active_refresh_tokens", {
   userId: p
     .varchar()
     .references(() => users.id)
-    .notNull(),
+    .notNull()
+    .unique(),
   refreshToken: p.varchar().notNull(),
   expiresAt: p.timestamp().notNull(),
   createdAt: p.timestamp().notNull().defaultNow(),

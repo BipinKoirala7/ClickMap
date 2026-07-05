@@ -9,6 +9,7 @@ import { config } from "./config/index.ts";
 import { apiRouter } from "./app.ts";
 import { errorHandler } from "./errorHandler.ts";
 import RestApiResponse from "./types/RestApiResponse.ts";
+import morgan from "morgan";
 
 const app = express();
 const cookieParser = await import("cookie-parser");
@@ -16,6 +17,7 @@ const cookieParser = await import("cookie-parser");
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser.default());
+app.use(morgan(config.MORGAN_PROFILE));
 
 const openApiDoc = generateOpenApiDoc();
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDoc));
