@@ -10,6 +10,9 @@ import { apiRouter } from "./app.ts";
 import { errorHandler } from "./errorHandler.ts";
 import RestApiResponse from "./types/RestApiResponse.ts";
 import morgan from "morgan";
+import { nanoid } from "nanoid";
+import { pinoHttp } from "pino-http";
+import { logger } from "./lib/logger.ts";
 
 const app = express();
 const cookieParser = await import("cookie-parser");
@@ -18,9 +21,6 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser.default());
 app.use(morgan(config.MORGAN_PROFILE));
-import { nanoid } from "nanoid";
-import { pinoHttp } from "pino-http";
-import { logger } from "./lib/logger.ts";
 
 app.use(
   pinoHttp({

@@ -17,5 +17,3 @@ export async function authenticate(
   req.userId = await jwtService.verifyAccessToken(accessToken);
   next();
 }
-
-export async function refreshTokensInCookies() {}
