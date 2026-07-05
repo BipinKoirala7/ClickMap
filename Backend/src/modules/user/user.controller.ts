@@ -3,15 +3,16 @@ import { type Request, type Response } from "express";
 import { type PublicUserDto } from "./user.schema.ts";
 import { userService } from "./user.service.ts";
 
+//  Change the id to get from the cookies
 async function getUserController(req: Request, res: Response) {
-  const supabaseId = req.user!.sub;
+  const id = req.user!.sub;
   res
     .status(200)
     .json(
       RestApiResponse.success<PublicUserDto>(
         200,
         "Success",
-        await userService.getUserBySupabaseId(supabaseId),
+        await userService.getUserById(id),
       ),
     );
 }

@@ -6,7 +6,7 @@ configDotenv();
 const envSchema = z.object({
   PORT: z.string().nonempty(),
   DATABASE_URL: z.string().nonempty(),
-  SUPABASE_URL: z.string().nonempty(),
+  JWT_SECRET: z.string().nonempty(),
 });
 
 const parsed = envSchema.safeParse(process.env);

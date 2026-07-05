@@ -3,7 +3,6 @@ import { userRepository } from "@/modules/user/user.repository.ts";
 import {
   UserAlreadyDeactivatedError,
   UserAlreadyActiveError,
-  UserNotFoundError,
 } from "@/errors/Errors.ts";
 import { userService } from "../user/user.service.ts";
 

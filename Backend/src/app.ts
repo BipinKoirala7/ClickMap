@@ -9,6 +9,6 @@ const apiRouter = Router();
 apiRouter.use("/user", userRouter);
 apiRouter.use("/link", linkRouter);
 apiRouter.use("/auth", authRouter);
-apiRouter.use("/anallytics", analyticsRouter);
+apiRouter.use("/analytics", analyticsRouter);
 
 export { apiRouter };

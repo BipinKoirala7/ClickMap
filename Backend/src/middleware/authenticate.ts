@@ -1,22 +1,23 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { jwtVerify } from "jose";
-import { PROJECT_JWKS } from "@/config/supabaseJwks.ts";
+import jwt from "jsonwebtoken";
+
 import { AuthenticationError, MissingTokenError } from "@/errors/Errors.ts";
+import { cookiesService } from "@/modules/auth/cookies.service.ts";
+import { config } from "@/config/index.ts";
 
 export async function authenticate(
   req: Request,
   _: Response,
   next: NextFunction,
 ): Promise<void> {
-  const token = req.headers.authorization?.replace("Bearer ", "");
-  if (!token) {
-    console.log("Tokens are missing in the request");
+  const accessToken = cookiesService.getAccessCookiesFromRequest(req);
+  if (!accessToken) {
+    console.error("Tokens are missing in the request");
     throw new MissingTokenError();
   }
-
   try {
-    const { payload } = await jwtVerify(token, PROJECT_JWKS);
-    req.user = payload;
+    const decoded = jwt.verify(accessToken, config.JWT_SECRET);
+    console.log("Decoded Token:", decoded);
     next();
   } catch (error) {
     console.error("Jwt Verification error");

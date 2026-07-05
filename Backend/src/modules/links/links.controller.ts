@@ -18,7 +18,7 @@ async function getAllLinksController(req: Request, res: Response) {
       RestApiResponse.success(
         200,
         "User Links Fetched Successfully",
-        await linkService.getUserLinks(req.user!.sub),
+        await linkService.getUserLinks(req.user?.sub || null),
       ),
     );
 }

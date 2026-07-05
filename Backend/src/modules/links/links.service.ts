@@ -1,4 +1,5 @@
 import {
+  AuthenticationError,
   LinkAlreadyActiveError,
   LinkAlreadyDeactivatedError,
   LinkNotFoundError,
@@ -24,7 +25,9 @@ async function createLink(supabaseId: string, dto: CreateLinkDto) {
   await linkRepository.createLink(newLink);
 }
 
-async function getUserLinks(supabaseId: string) {
+async function getUserLinks(supabaseId: string | null) {
+  console.log("SupabaseId: " + supabaseId);
+  if (!supabaseId) throw new AuthenticationError();
   const user = await userService.getBySupabaseId(supabaseId);
   return await linkRepository.getUserLinks(user.id);
 }

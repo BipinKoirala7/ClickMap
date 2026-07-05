@@ -11,8 +11,11 @@ import { errorHandler } from "./errorHandler.ts";
 import RestApiResponse from "./types/RestApiResponse.ts";
 
 const app = express();
+const cookieParser = await import("cookie-parser");
 
 app.use(cors());
+app.use(express.json());
+app.use(cookieParser.default());
 
 const openApiDoc = generateOpenApiDoc();
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDoc));

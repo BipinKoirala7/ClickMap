@@ -8,44 +8,36 @@ import {
   type User,
 } from "./user.schema.ts";
 
-async function getUserBySupabaseId(supabaseId: string): Promise<PublicUserDto> {
-  const user = await userRepository.findBySupabaseId(supabaseId);
+async function getUserById(id: string): Promise<PublicUserDto> {
+  const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
 
   return publicUserSchema.parse(user);
 }
 
 async function updateUser(
-  supabaseId: string,
+  id: string,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
-  if (!supabaseId) throw new AuthenticationError();
+  if (!id) throw new AuthenticationError();
 
-  const existingUser = await userRepository.findBySupabaseId(supabaseId);
+  const existingUser = await userRepository.findById(id);
   if (!existingUser) throw new UserNotFoundError();
 
   const info = updateUserSchema.parse(updatedUserInfo);
-  await userRepository.updateUserBySupabaseId(supabaseId, info);
-}
-
-async function getUserIdBySupabaseId(supabaseId: string): Promise<string> {
-  const user = await userRepository.findBySupabaseId(supabaseId);
-  if (!user) throw new UserNotFoundError();
-
-  return user.id;
+  await userRepository.updateUserById(id, info);
 }
 
 /* Only used for internal purposes */
-async function getBySupabaseId(supabaseId: string): Promise<User> {
-  const user = await userRepository.findBySupabaseId(supabaseId);
+async function getById(id: string): Promise<User> {
+  const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
 
   return user;
 }
 
 export const userService = {
-  getUserBySupabaseId,
+  getUserById,
   updateUser,
-  getUserIdBySupabaseId,
-  getBySupabaseId,
+  getById,
 };

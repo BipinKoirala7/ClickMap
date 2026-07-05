@@ -9,20 +9,8 @@ async function findById(id: string) {
   });
 }
 
-async function findBySupabaseId(supabaseId: string) {
-  return await db.query.users.findFirst({
-    where: eq(users.supabaseId, supabaseId),
-  });
-}
-
-async function updateUserBySupabaseId(
-  supabaseId: string,
-  { name, userName }: UpdateUserDto,
-) {
-  return await db
-    .update(users)
-    .set({ name, userName })
-    .where(eq(users.supabaseId, supabaseId));
+async function updateUserById(id: string, { name, userName }: UpdateUserDto) {
+  return await db.update(users).set({ name, userName }).where(eq(users.id, id));
 }
 
 async function updateUserStatus(id: string, isActive: boolean) {
@@ -34,7 +22,6 @@ async function updateUserStatus(id: string, isActive: boolean) {
 
 export const userRepository = {
   findById,
-  findBySupabaseId,
-  updateUserBySupabaseId,
+  updateUserById,
   updateUserStatus,
 };

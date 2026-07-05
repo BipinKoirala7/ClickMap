@@ -7,7 +7,6 @@ export const users = p.pgTable("users", {
     .varchar()
     .primaryKey()
     .$default(() => nanoid()),
-  supabaseId: p.uuid("supabase_id").notNull().unique(),
   email: p.varchar({ length: 255 }).notNull().unique(),
   password: p.varchar({ length: 255 }).notNull(),
   name: p.varchar({ length: 100 }).notNull(),

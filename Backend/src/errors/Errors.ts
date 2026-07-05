@@ -52,12 +52,6 @@ export class MissingTokenError extends AppError {
   }
 }
 
-export class TokenExpredError extends AppError {
-  constructor(message = "User Session expred, Please Log in again") {
-    super(message, 401);
-  }
-}
-
 /* Link Related Erros */
 
 export class LinkNotFoundError extends AppError {
