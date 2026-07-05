@@ -1,4 +1,5 @@
 import { config } from "@/config/index.ts";
+import { AuthenticationError } from "@/errors/Errors.ts";
 import * as jose from "jose";
 
 const ACCESS_TOKEN_TYPE = "ACCESS_TOKEN";
@@ -43,7 +44,37 @@ async function createRefreshToken(userId: string): Promise<string> {
   return refreshToken;
 }
 
+async function verifyAccessToken(accessToken: string): Promise<string> {
+  const { payload } = await jose.jwtDecrypt(accessToken, secret);
+
+  if (payload.tokenType !== ACCESS_TOKEN_TYPE) {
+    throw new AuthenticationError();
+  }
+
+  if (payload.sub == undefined) {
+    throw new AuthenticationError();
+  }
+
+  return payload.sub;
+}
+
+async function verifyRefreshToken(refreshToken: string): Promise<string> {
+  const { payload } = await jose.jwtDecrypt(refreshToken, secret);
+
+  if (payload.tokenType !== REFRESH_TOKEN_TYPE) {
+    throw new AuthenticationError();
+  }
+
+  if (payload.sub == undefined) {
+    throw new AuthenticationError();
+  }
+
+  return payload.sub;
+}
+
 export const jwtService = {
   createAccessToken,
   createRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
 };
