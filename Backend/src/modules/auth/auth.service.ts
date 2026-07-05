@@ -14,7 +14,7 @@ import {
   type NewUser,
   type User,
 } from "@/modules/auth/auth.schema.ts";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
@@ -46,9 +46,24 @@ async function loginUser(loginData: any, res: Response) {
   });
 }
 
-async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
-  const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
-  await authRepository.setActiveRefreshToken(info);
+async function refreshToken(req: Request, res: Response) {
+  const refreshToken = cookiesService.getRefreshCookiesFromRequest(req);
+  if (!refreshToken)
+    throw new AuthenticationError("Refresh token is missing in the request");
+
+  const userId = await jwtService.verifyRefreshToken(refreshToken);
+
+  const activeRefreshToken = await authRepository.getActiveRefreshToken(
+    userId,
+    refreshToken,
+  );
+  if (!activeRefreshToken) {
+    throw new AuthenticationError("Refresh token is not active");
+  }
+
+  const user = await userService.getById(userId);
+  const newAccessToken = await jwtService.createAccessToken(user);
+  await cookiesService.setAccessCookiesInResponse(res, newAccessToken);
 }
 
 async function logout(res: Response) {
@@ -59,7 +74,7 @@ async function activateUserStatus(id: string | undefined) {
   if (id == undefined) throw new AuthenticationError("User ID is undefined");
 
   const user = await userService.getById(id);
-  if (user.isActive) throw new UserAlreadyActiveError();
+  if (user.isActive) throw new UserAlreadyActiveError("User is already active");
 
   return userRepository.updateUserStatus(id, true);
 }
@@ -68,14 +83,21 @@ async function deactivateUserStatus(id: string | undefined) {
   if (id == undefined) throw new AuthenticationError("User ID is undefined");
 
   const user = await userService.getById(id);
-  if (!user.isActive) throw new UserAlreadyDeactivatedError();
+  if (!user.isActive)
+    throw new UserAlreadyDeactivatedError("User is already deactivated");
 
   return userRepository.updateUserStatus(id, false);
+}
+
+async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
+  const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
+  await authRepository.setActiveRefreshToken(info);
 }
 
 export const authService = {
   registerUser,
   loginUser,
+  refreshToken,
   logout,
   activateUserStatus,
   deactivateUserStatus,

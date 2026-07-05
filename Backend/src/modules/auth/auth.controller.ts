@@ -16,6 +16,13 @@ async function loginController(req: Request, res: Response) {
     .json(RestApiResponse.success(200, "User Logged In", null));
 }
 
+async function refreshTokenController(req: Request, res: Response) {
+  await authService.refreshToken(req, res);
+  return res
+    .status(200)
+    .json(RestApiResponse.success(200, "Token Refreshed", null));
+}
+
 async function logoutController(_req: Request, res: Response) {
   await authService.logout(res);
   return res
@@ -42,6 +49,7 @@ async function activateUserController(req: Request, res: Response) {
 export const authController = {
   registerController,
   loginController,
+  refreshTokenController,
   logoutController,
   deactivateUserController,
   activateUserController,
