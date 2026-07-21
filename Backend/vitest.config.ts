@@ -8,6 +8,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    clearMocks: true,
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts"],

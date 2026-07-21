@@ -104,8 +104,8 @@ describe("PUT /user Request", () => {
     expect(res.statusCode).toBe(422);
   })
 
-  it("returns 401 when User is not found", async () => {
-    userServiceMock.updateUser.mockThrow(new UserNotFoundError());
+  it("returns 404 when User is not found", async () => {
+    userServiceMock.updateUser.mockRejectedValue(new UserNotFoundError());
     const accessToken = await jwtService.createAccessToken({ id: nanoid(), email: user.email } as User);
 
     const res = await server.put("/api/v1/user").set("Cookie", [`accessToken=${accessToken}`]);
