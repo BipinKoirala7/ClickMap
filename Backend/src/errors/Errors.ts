@@ -3,7 +3,7 @@ import AppError from "./AppError.ts";
 /* User Related Errors */
 
 export class UserNotFoundError extends AppError {
-  constructor(message = "Resource not found") {
+  constructor(message = "User Not Found") {
     super(message, 404);
   }
 }

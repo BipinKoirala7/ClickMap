@@ -16,6 +16,9 @@ registry.registerPath({
     ["401"]: {
       description: "User is not logged in",
     },
+    ["404"]: {
+      description: "User Not Found",
+    },
   },
 });
 
@@ -37,6 +40,9 @@ registry.registerPath({
     },
     ["401"]: {
       description: "User is not logged in",
+    },
+    ["404"]: {
+      description: "User Not Found",
     },
   },
 });
