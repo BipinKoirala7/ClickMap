@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import AppError from "./errors/AppError.ts";
-import RestApiResponse from "./types/RestApiResponse.ts";
+import AppError from "./AppError.ts";
+import RestApiResponse from "../types/RestApiResponse.ts";
 import { ZodError } from "zod";
 import {
   JOSEError,
@@ -9,7 +9,7 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
-import { UserNotFoundError } from "./errors/Errors.ts";
+import { UserNotFoundError } from "./Errors.ts";
 
 // Jose needs to be distincted with different messages
 export function errorHandler(
@@ -18,7 +18,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  console.error("Error: ", error)
+  console.error("Error: ", error);
   console.error("Error occured: ", error.name);
   console.error("Error information: ", error.message);
 
@@ -87,9 +87,7 @@ export function errorHandler(
   }
 
   if (error instanceof UserNotFoundError) {
-    return res
-      .status(404)
-      .json(RestApiResponse.error(404, "User Not Found!"))
+    return res.status(404).json(RestApiResponse.error(404, "User Not Found!"));
   }
 
   return res
