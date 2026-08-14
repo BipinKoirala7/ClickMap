@@ -10,7 +10,7 @@ async function getUserController(req: Request, res: Response) {
     .json(
       RestApiResponse.success<PublicUserDto>(
         200,
-        "Success",
+        "User Info Successfully Fetched",
         await userService.getUserById(id),
       ),
     );
@@ -19,7 +19,9 @@ async function getUserController(req: Request, res: Response) {
 async function updateUserController(req: Request, res: Response) {
   const id = req.userId;
   await userService.updateUser(id, req.body);
-  return res.status(200).json(RestApiResponse.success(200, "User Info Updated", null));
+  return res
+    .status(200)
+    .json(RestApiResponse.success(200, "User Info Updated", null));
 }
 
 export const userController = {
