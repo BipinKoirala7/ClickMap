@@ -31,8 +31,6 @@ async function registerUser(userData: any) {
   const createdUser = await userRepository.createUser(user);
 
   logger.info({ userId: createdUser }, "User registered successfully");
-
-  return createdUser;
 }
 
 async function loginUser(loginData: any, res: Response) {
