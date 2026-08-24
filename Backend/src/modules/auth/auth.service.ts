@@ -18,23 +18,17 @@ import type { Request, Response } from "express";
 import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
-import { logger } from "@/lib/logger.ts"; // adjust path to wherever logger.ts lives
+import { logger } from "@/lib/logger.ts";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
-  const newUser: NewUser = {
-    name: user.name,
-    userName: user.userName,
-    email: user.email,
-    password: user.password,
-  };
 
   logger.info(
     { email: user.email, userName: user.userName },
     "Registering new user",
   );
 
-  const createdUser = await userRepository.createUser(newUser);
+  const createdUser = await userRepository.createUser(user);
 
   logger.info({ userId: createdUser }, "User registered successfully");
 
@@ -128,6 +122,7 @@ async function deactivateUserStatus(id: string | undefined) {
   return result;
 }
 
+// Helper Functions
 async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
   await authRepository.setActiveRefreshToken(info);
