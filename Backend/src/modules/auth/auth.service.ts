@@ -18,6 +18,7 @@ import type { Request, Response } from "express";
 import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
+import { logger } from "@/lib/logger.ts"; // adjust path to wherever logger.ts lives
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
@@ -28,11 +29,23 @@ async function registerUser(userData: any) {
     password: user.password,
   };
 
-  return userRepository.createUser(newUser);
+  logger.info(
+    { email: user.email, userName: user.userName },
+    "Registering new user",
+  );
+
+  const createdUser = await userRepository.createUser(newUser);
+
+  logger.info({ userId: createdUser }, "User registered successfully");
+
+  return createdUser;
 }
 
 async function loginUser(loginData: any, res: Response) {
   const loginInfo = loginUserSchema.parse(loginData);
+
+  logger.debug({ email: loginInfo.email }, "Login attempt");
+
   const user: User = await userService.getByEmail(loginInfo.email);
   const refreshToken = await jwtService.createRefreshToken(user.id);
   const accessToken = await jwtService.createAccessToken(user);
@@ -44,12 +57,16 @@ async function loginUser(loginData: any, res: Response) {
     refreshToken,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   });
+
+  logger.info({ userId: user.id }, "User logged in successfully");
 }
 
 async function refreshToken(req: Request, res: Response) {
   const refreshToken = cookiesService.getRefreshCookiesFromRequest(req);
-  if (!refreshToken)
+  if (!refreshToken) {
+    logger.warn("Refresh token missing in request");
     throw new AuthenticationError("Refresh token is missing in the request");
+  }
 
   const userId = await jwtService.verifyRefreshToken(refreshToken);
 
@@ -58,40 +75,63 @@ async function refreshToken(req: Request, res: Response) {
     refreshToken,
   );
   if (!activeRefreshToken) {
+    logger.warn({ userId }, "Refresh token is not active");
     throw new AuthenticationError("Refresh token is not active");
   }
 
   const user = await userService.getById(userId);
   const newAccessToken = await jwtService.createAccessToken(user);
   await cookiesService.setAccessCookiesInResponse(res, newAccessToken);
+
+  logger.debug({ userId }, "Access token refreshed");
 }
 
 async function logout(res: Response) {
   cookiesService.clearCookiesInResponse(res);
+  logger.debug("User logged out, cookies cleared");
 }
 
 async function activateUserStatus(id: string | undefined) {
-  if (id == undefined) throw new AuthenticationError("User ID is undefined");
+  if (id == undefined) {
+    logger.warn("activateUserStatus called with undefined ID");
+    throw new AuthenticationError("User ID is undefined");
+  }
 
   const user = await userService.getById(id);
-  if (user.isActive) throw new UserAlreadyActiveError("User is already active");
+  if (user.isActive) {
+    logger.warn({ userId: id }, "Attempted to activate an already active user");
+    throw new UserAlreadyActiveError("User is already active");
+  }
 
-  return userRepository.updateUserStatus(id, true);
+  const result = await userRepository.updateUserStatus(id, true);
+  logger.info({ userId: id }, "User activated");
+  return result;
 }
 
 async function deactivateUserStatus(id: string | undefined) {
-  if (id == undefined) throw new AuthenticationError("User ID is undefined");
+  if (id == undefined) {
+    logger.warn("deactivateUserStatus called with undefined ID");
+    throw new AuthenticationError("User ID is undefined");
+  }
 
   const user = await userService.getById(id);
-  if (!user.isActive)
+  if (!user.isActive) {
+    logger.warn(
+      { userId: id },
+      "Attempted to deactivate an already deactivated user",
+    );
     throw new UserAlreadyDeactivatedError("User is already deactivated");
+  }
 
-  return userRepository.updateUserStatus(id, false);
+  const result = await userRepository.updateUserStatus(id, false);
+  logger.info({ userId: id }, "User deactivated");
+  return result;
 }
 
 async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
   await authRepository.setActiveRefreshToken(info);
+  logger.debug({ userId: info.userId }, "Active refresh token stored");
 }
 
 export const authService = {
