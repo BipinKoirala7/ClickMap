@@ -11,7 +11,6 @@ import {
   loginUserSchema,
   registerUserSchema,
   type ActiveRefreshTokenDto,
-  type NewUser,
   type User,
 } from "@/modules/auth/auth.schema.ts";
 import type { Request, Response } from "express";
@@ -28,11 +27,9 @@ async function registerUser(userData: any) {
     "Registering new user",
   );
 
-  const createdUser = await userRepository.createUser(user);
+  const createdUserId = await userRepository.createUser(user);
 
-  logger.info({ userId: createdUser }, "User registered successfully");
-
-  return createdUser;
+  logger.info({ userId: createdUserId }, "User registered successfully");
 }
 
 async function loginUser(loginData: any, res: Response) {
