@@ -20,14 +20,12 @@ import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
 import { config } from "@/config/index.ts";
+import bcrypt from "bcryptjs";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
 
-  logger.info(
-    { email: user.email, userName: user.userName },
-    "Registering new user",
-  );
+  logger.info({ userName: user.userName }, "Registering new user");
 
   const createdUserId = await userRepository.createUser(user);
 
@@ -37,7 +35,7 @@ async function registerUser(userData: any) {
 async function loginUser(loginData: any, res: Response) {
   const loginInfo = loginUserSchema.parse(loginData);
 
-  logger.debug({ email: loginInfo.email }, "Login attempt");
+  logger.debug("Login attempt");
 
   let user: User;
 
@@ -51,7 +49,7 @@ async function loginUser(loginData: any, res: Response) {
     throw new Error("Something went wrong");
   }
 
-  const isPasswordValid = user.password === loginInfo.password;
+  const isPasswordValid = verifyPassword(loginInfo.password, user.password);
 
   if (!isPasswordValid) {
     logger.warn({ userId: user.id }, "Invalid password attempt");
@@ -148,6 +146,17 @@ async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
   await authRepository.setActiveRefreshToken(info);
   logger.debug({ userId: info.userId }, "Active refresh token stored");
+}
+
+async function hashPassword(rawPassword: string): Promise<string> {
+  return await bcrypt.hash(rawPassword, config.BCRYPT_SALT_ROUNDS);
+}
+
+async function verifyPassword(
+  rawPassword: string,
+  hashPassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(rawPassword, hashPassword);
 }
 
 export const authService = {

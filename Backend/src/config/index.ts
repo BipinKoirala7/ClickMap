@@ -25,6 +25,9 @@ const envSchema = z.object({
     .nonempty()
     .default("/api/v1/auth/refresh"),
 
+  // Bcrypt configuration
+  BCRYPT_SALT_ROUNDS: z.number().positive().default(12),
+
   // Logging configuration
   NODE_ENV: z.string().nonempty(),
   MORGAN_PROFILE: z.string().nonempty(),
