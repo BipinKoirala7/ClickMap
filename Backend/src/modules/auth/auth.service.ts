@@ -4,6 +4,7 @@ import {
   UserAlreadyDeactivatedError,
   UserAlreadyActiveError,
   AuthenticationError,
+  UserNotFoundError,
 } from "@/errors/Errors.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import {
@@ -38,11 +39,16 @@ async function loginUser(loginData: any, res: Response) {
 
   logger.debug({ email: loginInfo.email }, "Login attempt");
 
-  const user: User = await userService.getByEmail(loginInfo.email);
+  let user: User;
 
-  if (!user.isActive) {
-    logger.warn({ userId: user.id }, "Attempted login for inactive user");
-    throw new AuthenticationError("User account is deactivated");
+  try {
+    user = await userService.getByEmail(loginInfo.email);
+  } catch (e) {
+    if (e instanceof UserNotFoundError) {
+      throw new AuthenticationError("Invalid email or password");
+    }
+
+    throw new Error("Something went wrong");
   }
 
   const isPasswordValid = user.password === loginInfo.password;
@@ -50,6 +56,11 @@ async function loginUser(loginData: any, res: Response) {
   if (!isPasswordValid) {
     logger.warn({ userId: user.id }, "Invalid password attempt");
     throw new AuthenticationError("Invalid email or password");
+  }
+
+  if (!user.isActive) {
+    logger.warn({ userId: user.id }, "Attempted login for inactive user");
+    throw new AuthenticationError("User account is deactivated");
   }
 
   const refreshToken = await jwtService.createRefreshToken(user.id);
