@@ -38,16 +38,28 @@ async function loginUser(loginData: any, res: Response) {
   logger.debug({ email: loginInfo.email }, "Login attempt");
 
   const user: User = await userService.getByEmail(loginInfo.email);
+
+  if (!user.isActive) {
+    logger.warn({ userId: user.id }, "Attempted login for inactive user");
+    throw new AuthenticationError("User account is deactivated");
+  }
+
+  const isPasswordValid = user.password === loginInfo.password;
+
+  if (!isPasswordValid) {
+    logger.warn({ userId: user.id }, "Invalid password attempt");
+    throw new AuthenticationError("Invalid email or password");
+  }
+
   const refreshToken = await jwtService.createRefreshToken(user.id);
   const accessToken = await jwtService.createAccessToken(user);
-  await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
-  await cookiesService.setAccessCookiesInResponse(res, accessToken);
-
   await setActiveRefreshToken({
     userId: user.id,
     refreshToken,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   });
+  await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
+  await cookiesService.setAccessCookiesInResponse(res, accessToken);
 
   logger.info({ userId: user.id }, "User logged in successfully");
 }
