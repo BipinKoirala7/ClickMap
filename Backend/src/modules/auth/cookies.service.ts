@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
-
-const 
+import { config } from "@/config/index.ts";
 
 function getAccessCookiesFromRequest(req: Request): string | null {
   return req.cookies["accessToken"] ?? null;
@@ -15,11 +14,11 @@ async function setAccessCookiesInResponse(
   accessToken: string,
 ): Promise<void> {
   res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    httpOnly: config.COOKIE_HTTP_ONLY,
+    secure: config.COOKIE_SECURE,
+    sameSite: config.COOKIE_SAME_SITE,
     maxAge: 15 * 60 * 1000,
-    path: "/",
+    path: config.COOKIE_ACCESS_TOKEN_PATH,
   });
 }
 
@@ -28,11 +27,11 @@ async function setRefreshCookiesInResponse(
   refreshToken: string,
 ): Promise<void> {
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: "/api/v1/auth/refresh",
+    httpOnly: config.COOKIE_HTTP_ONLY,
+    secure: config.COOKIE_SECURE,
+    sameSite: config.COOKIE_SAME_SITE,
+    maxAge: config.REFRESH_TOKEN_EXPIRATION,
+    path: config.COOKIE_REFRESH_TOKEN_PATH,
   });
 }
 

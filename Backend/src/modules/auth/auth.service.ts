@@ -18,6 +18,7 @@ import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
+import { config } from "@/config/index.ts";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
@@ -56,7 +57,7 @@ async function loginUser(loginData: any, res: Response) {
   await setActiveRefreshToken({
     userId: user.id,
     refreshToken,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + config.REFRESH_TOKEN_EXPIRATION),
   });
   await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
   await cookiesService.setAccessCookiesInResponse(res, accessToken);
