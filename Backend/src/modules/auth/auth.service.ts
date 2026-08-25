@@ -49,7 +49,10 @@ async function loginUser(loginData: any, res: Response) {
     throw new Error("Something went wrong");
   }
 
-  const isPasswordValid = verifyPassword(loginInfo.password, user.password);
+  const isPasswordValid = await verifyPassword(
+    loginInfo.password,
+    user.password,
+  );
 
   if (!isPasswordValid) {
     logger.warn({ userId: user.id }, "Invalid password attempt");
