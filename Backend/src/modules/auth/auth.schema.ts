@@ -20,7 +20,15 @@ export const registerUserSchema = createInsertSchema(users, {
   })
   .openapi("RegisterUser");
 
-export const loginUserSchema = createSelectSchema(users)
+export const loginUserSchema = createSelectSchema(users, {
+  email: z.email("Email is invalid"),
+  password: z
+    .string("Password must be a string")
+    .min(8, "Password must be at least 8 characters long")
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[0-9]/, "Must contain a number"),
+})
   .pick({
     email: true,
     password: true,

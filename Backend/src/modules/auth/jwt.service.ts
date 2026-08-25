@@ -13,15 +13,15 @@ async function createAccessToken(user: User): Promise<string> {
     tokenType: ACCESS_TOKEN_TYPE,
   };
 
-  const options = {
-    expiresIn: "15m",
-  };
+  const now = Math.floor(Date.now() / 1000);
+  const accessTokenExpirationTime =
+    now + Math.floor(config.ACCESS_TOKEN_EXPIRATION / 1000);
 
   const accessToken = await new jose.SignJWT(payload)
     .setSubject(user.id)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(new Date())
-    .setExpirationTime(options.expiresIn)
+    .setExpirationTime(accessTokenExpirationTime)
     .sign(secret);
 
   return accessToken;
@@ -32,15 +32,15 @@ async function createRefreshToken(userId: string): Promise<string> {
     tokenType: REFRESH_TOKEN_TYPE,
   };
 
-  const options = {
-    expiresIn: "7d",
-  };
+  const now = Math.floor(Date.now() / 1000);
+  const refreshTokenExpirationSeconds =
+    now + Math.floor(config.REFRESH_TOKEN_EXPIRATION / 1000);
 
   const refreshToken = await new jose.SignJWT(payload)
     .setSubject(userId)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(new Date())
-    .setExpirationTime(options.expiresIn)
+    .setExpirationTime(refreshTokenExpirationSeconds)
     .sign(secret);
 
   return refreshToken;

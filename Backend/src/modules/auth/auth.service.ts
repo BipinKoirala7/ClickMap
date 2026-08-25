@@ -4,6 +4,7 @@ import {
   UserAlreadyDeactivatedError,
   UserAlreadyActiveError,
   AuthenticationError,
+  UserNotFoundError,
 } from "@/errors/Errors.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import {
@@ -18,14 +19,13 @@ import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
+import { config } from "@/config/index.ts";
+import bcrypt from "bcryptjs";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
 
-  logger.info(
-    { email: user.email, userName: user.userName },
-    "Registering new user",
-  );
+  logger.info({ userName: user.userName }, "Registering new user");
 
   const createdUserId = await userRepository.createUser(user);
 
@@ -35,19 +35,44 @@ async function registerUser(userData: any) {
 async function loginUser(loginData: any, res: Response) {
   const loginInfo = loginUserSchema.parse(loginData);
 
-  logger.debug({ email: loginInfo.email }, "Login attempt");
+  logger.debug("Login attempt");
 
-  const user: User = await userService.getByEmail(loginInfo.email);
+  let user: User;
+
+  try {
+    user = await userService.getByEmail(loginInfo.email);
+  } catch (e) {
+    if (e instanceof UserNotFoundError) {
+      throw new AuthenticationError("Invalid email or password");
+    }
+
+    throw new Error("Something went wrong");
+  }
+
+  const isPasswordValid = await verifyPassword(
+    loginInfo.password,
+    user.password,
+  );
+
+  if (!isPasswordValid) {
+    logger.warn({ userId: user.id }, "Invalid password attempt");
+    throw new AuthenticationError("Invalid email or password");
+  }
+
+  if (!user.isActive) {
+    logger.warn({ userId: user.id }, "Attempted login for inactive user");
+    throw new AuthenticationError("User account is deactivated");
+  }
+
   const refreshToken = await jwtService.createRefreshToken(user.id);
   const accessToken = await jwtService.createAccessToken(user);
-  await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
-  await cookiesService.setAccessCookiesInResponse(res, accessToken);
-
   await setActiveRefreshToken({
     userId: user.id,
     refreshToken,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + config.REFRESH_TOKEN_EXPIRATION),
   });
+  await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
+  await cookiesService.setAccessCookiesInResponse(res, accessToken);
 
   logger.info({ userId: user.id }, "User logged in successfully");
 }
@@ -124,6 +149,17 @@ async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
   await authRepository.setActiveRefreshToken(info);
   logger.debug({ userId: info.userId }, "Active refresh token stored");
+}
+
+async function hashPassword(rawPassword: string): Promise<string> {
+  return await bcrypt.hash(rawPassword, config.BCRYPT_SALT_ROUNDS);
+}
+
+async function verifyPassword(
+  rawPassword: string,
+  hashPassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(rawPassword, hashPassword);
 }
 
 export const authService = {
