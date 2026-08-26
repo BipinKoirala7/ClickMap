@@ -12,6 +12,7 @@ import {
   loginUserSchema,
   registerUserSchema,
   type ActiveRefreshTokenDto,
+  type NewActiveRefreshToken,
   type User,
 } from "@/modules/auth/auth.schema.ts";
 import type { Request, Response } from "express";
@@ -99,7 +100,15 @@ async function refreshToken(req: Request, res: Response) {
   }
 
   const user = await userService.getById(userId);
+  const newRefreshToken = await jwtService.createRefreshToken(user.id);
   const newAccessToken = await jwtService.createAccessToken(user);
+
+  await authRepository.setActiveRefreshToken({
+    userId: user.id,
+    refreshToken: newRefreshToken,
+    expiresAt: new Date(Date.now() + config.REFRESH_TOKEN_EXPIRATION),
+  });
+  await cookiesService.setRefreshCookiesInResponse(res, newRefreshToken);
   await cookiesService.setAccessCookiesInResponse(res, newAccessToken);
 
   logger.debug({ userId }, "Access token refreshed");

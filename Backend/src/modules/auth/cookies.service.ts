@@ -17,7 +17,7 @@ async function setAccessCookiesInResponse(
     httpOnly: config.COOKIE_HTTP_ONLY,
     secure: config.COOKIE_SECURE,
     sameSite: config.COOKIE_SAME_SITE,
-    maxAge: 15 * 60 * 1000,
+    maxAge: config.ACCESS_TOKEN_EXPIRATION,
     path: config.COOKIE_ACCESS_TOKEN_PATH,
   });
 }

@@ -1,10 +1,7 @@
 import { db } from "@/db/database.ts";
 import { activeRefreshTokens } from "@/db/schema.ts";
 import { eq, and } from "drizzle-orm";
-import type {
-  ActiveRefreshToken,
-  NewActiveRefreshToken,
-} from "./auth.schema.ts";
+import type { NewActiveRefreshToken } from "./auth.schema.ts";
 
 async function setActiveRefreshToken(info: NewActiveRefreshToken) {
   return await db.insert(activeRefreshTokens).values(info).onConflictDoUpdate({
