@@ -1,14 +1,23 @@
 import app from "@/app";
 import type { RegisterUserDto } from "@/modules/auth/auth.schema";
 import { authService } from "@/modules/auth/auth.service";
-import { ZodError } from "zod";
+import { success, ZodError } from "zod";
 import request from "supertest";
 import type TestAgent from "supertest/lib/agent";
 import { describe, expect, it, beforeAll, vi, beforeEach } from "vitest";
 import AppError from "@/errors/AppError";
-import { AuthenticationError } from "@/errors/Errors";
+import { AuthenticationError, UserNotFoundError } from "@/errors/Errors";
+import { cookiesService } from "@/modules/auth/cookies.service";
+import { jwtService } from "@/modules/auth/jwt.service";
+import { authRepository } from "@/modules/auth/auth.repository";
+import { userService } from "@/modules/user/user.service";
+import { JWTExpired } from "jose/errors";
 
 vi.mock("@/modules/auth/auth.service.ts");
+vi.mock("@/modules/auth/jwt.service.ts");
+vi.mock("@/modules/auth/auth.repository.ts");
+vi.mock("@/modules/auth/cookies.service.ts");
+vi.mock("@/modules/user/user.service.ts");
 
 const newUser: RegisterUserDto = {
   name: "Bipin Koirala",
@@ -146,6 +155,78 @@ describe("POST /login", () => {
     );
 
     const res = await server.post("/api/v1/auth/login").send(validPayload);
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe("Unexpected Error Occured");
+  });
+});
+
+describe("POST /auth/refresh-token", () => {
+  const REFRESH_TOKEN_ROUTE = "/api/v1/auth/refresh";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 and success response when refresh succeeds", async () => {
+    vi.mocked(authService.refreshToken).mockResolvedValue(undefined);
+
+    const res = await server.post(REFRESH_TOKEN_ROUTE);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      statusCode: 200,
+      message: "Token Refreshed",
+      data: null,
+      success: true,
+    });
+    expect(authService.refreshToken).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  it("returns 401 when authService.refreshToken throws AuthenticationError", async () => {
+    vi.mocked(authService.refreshToken).mockRejectedValue(
+      new AuthenticationError("Refresh token is missing in the request"),
+    );
+
+    const res = await server.post(REFRESH_TOKEN_ROUTE);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("Refresh token is missing in the request");
+  });
+
+  it("returns 401 with session-expired message when authService.refreshToken throws JWTExpired", async () => {
+    vi.mocked(authService.refreshToken).mockRejectedValue(
+      new JWTExpired("refresh token expired", {
+        code: "ERR_JWT_EXPIRED",
+      } as any),
+    );
+
+    const res = await server.post(REFRESH_TOKEN_ROUTE);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
+  });
+
+  it("returns 404 when authService.refreshToken throws UserNotFoundError", async () => {
+    vi.mocked(authService.refreshToken).mockRejectedValue(
+      new UserNotFoundError("User not found"),
+    );
+
+    const res = await server.post(REFRESH_TOKEN_ROUTE);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe("User not found");
+  });
+
+  it("returns 500 when authService.refreshToken throws an unexpected error", async () => {
+    vi.mocked(authService.refreshToken).mockRejectedValue(
+      new Error("Something went wrong"),
+    );
+
+    const res = await server.post(REFRESH_TOKEN_ROUTE);
 
     expect(res.status).toBe(500);
     expect(res.body.message).toBe("Unexpected Error Occured");

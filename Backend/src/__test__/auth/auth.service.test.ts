@@ -15,11 +15,8 @@ import { logger } from "@/lib/logger";
 import { UserNotFoundError, AuthenticationError } from "@/errors/Errors";
 import { config } from "@/config";
 import type { Request, Response } from "express";
-import bcrypt from "bcryptjs";
 import { authRepository } from "@/modules/auth/auth.repository";
 import { password } from "@/lib/password";
-
-vi.mock("bcryptjs");
 
 vi.mock("@/lib/password");
 vi.mock("@/modules/user/user.service");
