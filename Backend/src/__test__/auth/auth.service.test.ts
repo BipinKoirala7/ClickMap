@@ -1,5 +1,5 @@
 import {
-  loginUserSchema,
+  type ActiveRefreshToken,
   type RegisterUserDto,
   type User,
 } from "@/modules/auth/auth.schema";
@@ -14,7 +14,7 @@ import { cookiesService } from "@/modules/auth/cookies.service";
 import { logger } from "@/lib/logger";
 import { UserNotFoundError, AuthenticationError } from "@/errors/Errors";
 import { config } from "@/config";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { authRepository } from "@/modules/auth/auth.repository";
 
@@ -272,5 +272,67 @@ describe("Login User", () => {
 
     expect(cookiesService.setRefreshCookiesInResponse).not.toHaveBeenCalled();
     expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+  });
+});
+
+describe("Refresh Token", () => {
+  const mockUser: User = {
+    id: "user-123",
+    email: "test@example.com",
+    password: "Hashed1password",
+    isActive: true,
+  } as User;
+
+  const refreshToken = "refresh-token";
+  const accessToken = "access-token";
+
+  const mockActiveRefreshToken: ActiveRefreshToken = {
+    id: "some-id",
+    userId: mockUser.id,
+    refreshToken: refreshToken,
+    expiresAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  let res: Response;
+  let req: Request;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    res = {} as Response;
+    req = {} as Request;
+  });
+
+  it("it should refresh token successfully", async () => {
+    // Arrange
+    vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+      refreshToken,
+    );
+    vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+    vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+      mockActiveRefreshToken,
+    );
+    vi.mocked(userService.getById).mockResolvedValue(mockUser);
+    vi.mocked(jwtService.createAccessToken).mockResolvedValue(accessToken);
+
+    // Act
+    await authService.refreshToken(req, res);
+
+    // Assert
+    expect(cookiesService.getRefreshCookiesFromRequest).toHaveBeenCalledWith(
+      req,
+    );
+    expect(jwtService.verifyRefreshToken).toHaveBeenCalledWith(refreshToken);
+    expect(authRepository.getActiveRefreshToken).toHaveBeenCalledWith(
+      mockUser.id,
+      refreshToken,
+    );
+    expect(userService.getById).toHaveBeenCalledWith(mockUser.id);
+    expect(jwtService.createAccessToken).toHaveBeenCalledWith(mockUser);
+    expect(cookiesService.setAccessCookiesInResponse).toHaveBeenCalledWith(
+      res,
+      accessToken,
+    );
   });
 });

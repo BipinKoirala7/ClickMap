@@ -54,4 +54,5 @@ export type ActiveRefreshTokenDto = z.infer<typeof activeRefreshTokenSchema>;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export type ActiveRefreshToken = typeof activeRefreshTokens.$inferInsert;
+export type NewActiveRefreshToken = typeof activeRefreshTokens.$inferInsert;
+export type ActiveRefreshToken = typeof activeRefreshTokens.$inferSelect;

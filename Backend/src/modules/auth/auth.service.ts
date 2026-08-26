@@ -27,6 +27,8 @@ async function registerUser(userData: any) {
 
   logger.info({ userName: user.userName }, "Registering new user");
 
+  user.password = await hashPassword(user.password);
+
   const createdUserId = await userRepository.createUser(user);
 
   logger.info({ userId: createdUserId }, "User registered successfully");
@@ -79,17 +81,18 @@ async function loginUser(loginData: any, res: Response) {
 
 async function refreshToken(req: Request, res: Response) {
   const refreshToken = cookiesService.getRefreshCookiesFromRequest(req);
+
   if (!refreshToken) {
     logger.warn("Refresh token missing in request");
     throw new AuthenticationError("Refresh token is missing in the request");
   }
 
   const userId = await jwtService.verifyRefreshToken(refreshToken);
-
   const activeRefreshToken = await authRepository.getActiveRefreshToken(
-    userId,
     refreshToken,
+    userId,
   );
+
   if (!activeRefreshToken) {
     logger.warn({ userId }, "Refresh token is not active");
     throw new AuthenticationError("Refresh token is not active");
