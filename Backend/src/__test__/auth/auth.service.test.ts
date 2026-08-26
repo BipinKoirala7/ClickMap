@@ -17,9 +17,11 @@ import { config } from "@/config";
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { authRepository } from "@/modules/auth/auth.repository";
+import { password } from "@/lib/password";
 
 vi.mock("bcryptjs");
 
+vi.mock("@/lib/password");
 vi.mock("@/modules/user/user.service");
 vi.mock("@/modules/auth/jwt.service");
 vi.mock("@/modules/auth/cookies.service");
@@ -36,9 +38,6 @@ vi.mock("@/lib/logger", () => ({
 vi.mock("@/modules/user/user.repository.ts");
 
 const mockedUserRepository = vi.mocked(userRepository);
-const mockedBcryptCompare = vi.mocked(
-  bcrypt.compare as (data: string, encrypted: string) => Promise<boolean>,
-);
 
 const newUser: RegisterUserDto = {
   name: "Bipin Koirala",
@@ -58,15 +57,23 @@ const createdUser: User = {
 };
 
 describe("Register User", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it("should call userRepository.createUser with correct data", async () => {
     // Arrange
     mockedUserRepository.createUser.mockResolvedValue(createdUser.id);
+    vi.mocked(password.hashPassword).mockResolvedValue("hashed-password");
 
     // Act
     await authService.registerUser(newUser);
 
     // Assert
-    expect(mockedUserRepository.createUser).toHaveBeenCalledWith(newUser);
+    expect(mockedUserRepository.createUser).toHaveBeenCalledWith({
+      ...newUser,
+      password: "hashed-password",
+    });
   });
 
   it("should throw an error if userRepository.createUser fails", async () => {
@@ -137,7 +144,7 @@ describe("Login User", () => {
     vi.clearAllMocks();
     res = {} as Response;
 
-    vi.mocked(mockedBcryptCompare).mockResolvedValue(true);
+    vi.mocked(password.verifyPassword).mockResolvedValue(true);
     vi.mocked(userService.getByEmail).mockResolvedValue(mockUser);
     vi.mocked(jwtService.createRefreshToken).mockResolvedValue("refresh-token");
     vi.mocked(jwtService.createAccessToken).mockResolvedValue("access-token");
@@ -153,7 +160,7 @@ describe("Login User", () => {
     await authService.loginUser(loginData, res);
 
     expect(userService.getByEmail).toHaveBeenCalledWith(loginData.email);
-    expect(mockedBcryptCompare).toHaveBeenCalledWith(
+    expect(password.verifyPassword).toHaveBeenCalledWith(
       loginData.password,
       mockUser.password,
     );
@@ -177,7 +184,7 @@ describe("Login User", () => {
   it("computes expiresAt based on config.REFRESH_TOKEN_EXPIRATION", async () => {
     const fixedNow = Date.now();
     vi.useFakeTimers({ now: fixedNow });
-    vi.mocked(mockedBcryptCompare).mockResolvedValue(true);
+    vi.mocked(password.verifyPassword).mockResolvedValue(true);
 
     await authService.loginUser(loginData, res);
 
@@ -211,7 +218,7 @@ describe("Login User", () => {
       "Invalid email or password",
     );
 
-    expect(mockedBcryptCompare).not.toHaveBeenCalled();
+    expect(password.verifyPassword).not.toHaveBeenCalled();
   });
 
   it("rethrows a generic error when getByEmail fails unexpectedly", async () => {
@@ -225,7 +232,7 @@ describe("Login User", () => {
   });
 
   it("throws AuthenticationError and logs a warning on invalid password", async () => {
-    vi.mocked(mockedBcryptCompare).mockResolvedValue(false);
+    vi.mocked(password.verifyPassword).mockResolvedValue(false);
 
     await expect(authService.loginUser(loginData, res)).rejects.toThrow(
       AuthenticationError,
@@ -299,12 +306,12 @@ describe("Refresh Token", () => {
   let req: Request;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     res = {} as Response;
     req = {} as Request;
   });
 
-  it("it should refresh token successfully", async () => {
+  it("should refresh token successfully", async () => {
     // Arrange
     vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
       refreshToken,
@@ -325,8 +332,8 @@ describe("Refresh Token", () => {
     );
     expect(jwtService.verifyRefreshToken).toHaveBeenCalledWith(refreshToken);
     expect(authRepository.getActiveRefreshToken).toHaveBeenCalledWith(
-      mockUser.id,
       refreshToken,
+      mockUser.id,
     );
     expect(userService.getById).toHaveBeenCalledWith(mockUser.id);
     expect(jwtService.createAccessToken).toHaveBeenCalledWith(mockUser);
@@ -334,5 +341,226 @@ describe("Refresh Token", () => {
       res,
       accessToken,
     );
+  });
+
+  describe("when the refresh token cookie is missing", () => {
+    it("throws AuthenticationError and calls nothing else", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        null,
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        AuthenticationError,
+      );
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "Refresh token is missing in the request",
+      );
+
+      expect(jwtService.verifyRefreshToken).not.toHaveBeenCalled();
+      expect(authRepository.getActiveRefreshToken).not.toHaveBeenCalled();
+      expect(userService.getById).not.toHaveBeenCalled();
+      expect(jwtService.createAccessToken).not.toHaveBeenCalled();
+      expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+    });
+
+    it("treats an empty string cookie the same as missing (falsy check)", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        "",
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        AuthenticationError,
+      );
+      expect(jwtService.verifyRefreshToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when refresh token verification fails", () => {
+    it("propagates AuthenticationError for an invalid/expired/malformed JWT", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockRejectedValue(
+        new AuthenticationError("Invalid token"),
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        AuthenticationError,
+      );
+
+      expect(authRepository.getActiveRefreshToken).not.toHaveBeenCalled();
+      expect(userService.getById).not.toHaveBeenCalled();
+      expect(jwtService.createAccessToken).not.toHaveBeenCalled();
+      expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+    });
+
+    it("propagates AuthenticationError when jose throws (e.g. bad signature/expired)", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      // Simulates jose.jwtVerify throwing (JWTExpired, JWSSignatureVerificationFailed, etc.)
+      vi.mocked(jwtService.verifyRefreshToken).mockRejectedValue(
+        new Error("JWTExpired: exp claim timestamp check failed"),
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "JWTExpired",
+      );
+      expect(authRepository.getActiveRefreshToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the refresh token is not active", () => {
+    it("throws AuthenticationError when no matching record exists (revoked/rotated/unknown token)", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        undefined,
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        AuthenticationError,
+      );
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "Refresh token is not active",
+      );
+
+      expect(userService.getById).not.toHaveBeenCalled();
+      expect(jwtService.createAccessToken).not.toHaveBeenCalled();
+      expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the active-refresh-token lookup itself fails", () => {
+    it("propagates unexpected errors (e.g. db/connection failure) without wrapping them", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockRejectedValue(
+        new Error("DB connection error"),
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "DB connection error",
+      );
+      expect(userService.getById).not.toHaveBeenCalled();
+      expect(jwtService.createAccessToken).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the user can't be found", () => {
+    it("propagates UserNotFoundError (e.g. user deleted after token was issued)", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        mockActiveRefreshToken,
+      );
+      vi.mocked(userService.getById).mockRejectedValue(new UserNotFoundError());
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        UserNotFoundError,
+      );
+
+      expect(jwtService.createAccessToken).not.toHaveBeenCalled();
+      expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when access token creation fails", () => {
+    it("propagates the signing error and never sets a cookie", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        mockActiveRefreshToken,
+      );
+      vi.mocked(userService.getById).mockResolvedValue(mockUser);
+      vi.mocked(jwtService.createAccessToken).mockRejectedValue(
+        new Error("Signing failed"),
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "Signing failed",
+      );
+
+      expect(cookiesService.setAccessCookiesInResponse).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when setting the response cookie fails", () => {
+    it("propagates the error even though the access token was already created", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        mockActiveRefreshToken,
+      );
+      vi.mocked(userService.getById).mockResolvedValue(mockUser);
+      vi.mocked(jwtService.createAccessToken).mockResolvedValue(accessToken);
+      vi.mocked(cookiesService.setAccessCookiesInResponse).mockRejectedValue(
+        new Error("Failed to set cookie"),
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow(
+        "Failed to set cookie",
+      );
+    });
+  });
+
+  describe("logging behavior", () => {
+    it("logs a warning (without throwing details) when the cookie is missing", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        null,
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow();
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        "Refresh token missing in request",
+      );
+    });
+
+    it("logs a warning with the userId when the token is not active", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        undefined,
+      );
+
+      await expect(authService.refreshToken(req, res)).rejects.toThrow();
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        { userId: mockUser.id },
+        "Refresh token is not active",
+      );
+    });
+
+    it("logs a debug message with the userId on success", async () => {
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        refreshToken,
+      );
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue(mockUser.id);
+      vi.mocked(authRepository.getActiveRefreshToken).mockResolvedValue(
+        mockActiveRefreshToken,
+      );
+      vi.mocked(userService.getById).mockResolvedValue(mockUser);
+      vi.mocked(jwtService.createAccessToken).mockResolvedValue(accessToken);
+
+      await authService.refreshToken(req, res);
+
+      expect(logger.debug).toHaveBeenCalledWith(
+        { userId: mockUser.id },
+        "Access token refreshed",
+      );
+    });
   });
 });
