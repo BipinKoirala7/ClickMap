@@ -42,7 +42,7 @@ export async function startTestDb() {
     },
   });
 
-  await migrate(db, { migrationsFolder: "./" });
+  await migrate(db, { migrationsFolder: "./drizzle" });
 
   return db;
 }

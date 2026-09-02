@@ -12,7 +12,6 @@ import {
   loginUserSchema,
   registerUserSchema,
   type ActiveRefreshTokenDto,
-  type NewActiveRefreshToken,
   type User,
 } from "@/modules/auth/auth.schema.ts";
 import type { Request, Response } from "express";
