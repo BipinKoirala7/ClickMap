@@ -20,12 +20,14 @@ import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
 import { config } from "@/config/index.ts";
-import bcrypt from "bcryptjs";
+import { password } from "@/lib/password.ts";
 
 async function registerUser(userData: any) {
   const user = registerUserSchema.parse(userData);
 
   logger.info({ userName: user.userName }, "Registering new user");
+
+  user.password = await password.hashPassword(user.password);
 
   const createdUserId = await userRepository.createUser(user);
 
@@ -49,7 +51,7 @@ async function loginUser(loginData: any, res: Response) {
     throw new Error("Something went wrong");
   }
 
-  const isPasswordValid = await verifyPassword(
+  const isPasswordValid = await password.verifyPassword(
     loginInfo.password,
     user.password,
   );
@@ -79,24 +81,33 @@ async function loginUser(loginData: any, res: Response) {
 
 async function refreshToken(req: Request, res: Response) {
   const refreshToken = cookiesService.getRefreshCookiesFromRequest(req);
+
   if (!refreshToken) {
     logger.warn("Refresh token missing in request");
     throw new AuthenticationError("Refresh token is missing in the request");
   }
 
   const userId = await jwtService.verifyRefreshToken(refreshToken);
-
   const activeRefreshToken = await authRepository.getActiveRefreshToken(
-    userId,
     refreshToken,
+    userId,
   );
+
   if (!activeRefreshToken) {
     logger.warn({ userId }, "Refresh token is not active");
     throw new AuthenticationError("Refresh token is not active");
   }
 
   const user = await userService.getById(userId);
+  const newRefreshToken = await jwtService.createRefreshToken(user.id);
   const newAccessToken = await jwtService.createAccessToken(user);
+
+  await authRepository.setActiveRefreshToken({
+    userId: user.id,
+    refreshToken: newRefreshToken,
+    expiresAt: new Date(Date.now() + config.REFRESH_TOKEN_EXPIRATION),
+  });
+  await cookiesService.setRefreshCookiesInResponse(res, newRefreshToken);
   await cookiesService.setAccessCookiesInResponse(res, newAccessToken);
 
   logger.debug({ userId }, "Access token refreshed");
@@ -149,17 +160,6 @@ async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
   await authRepository.setActiveRefreshToken(info);
   logger.debug({ userId: info.userId }, "Active refresh token stored");
-}
-
-async function hashPassword(rawPassword: string): Promise<string> {
-  return await bcrypt.hash(rawPassword, config.BCRYPT_SALT_ROUNDS);
-}
-
-async function verifyPassword(
-  rawPassword: string,
-  hashPassword: string,
-): Promise<boolean> {
-  return bcrypt.compare(rawPassword, hashPassword);
 }
 
 export const authService = {
