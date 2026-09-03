@@ -17,3 +17,16 @@ export async function authenticate(
   req.userId = await jwtService.verifyAccessToken(accessToken);
   next();
 }
+
+export async function authenticateRefreshToken(
+  req: Request,
+  _: Response,
+  next: NextFunction,
+): Promise<void> {
+  const refreshToken = cookiesService.getRefreshCookiesFromRequest(req);
+  if (!refreshToken) {
+    throw new MissingTokenError();
+  }
+  req.userId = await jwtService.verifyRefreshToken(refreshToken);
+  next();
+}

@@ -48,7 +48,7 @@ async function loginUser(loginData: any, res: Response) {
       throw new AuthenticationError("Invalid email or password");
     }
 
-    throw new Error("Something went wrong");
+    throw e;
   }
 
   const isPasswordValid = await password.verifyPassword(
@@ -88,21 +88,12 @@ async function refreshToken(req: Request, res: Response) {
   }
 
   const userId = await jwtService.verifyRefreshToken(refreshToken);
-  const activeRefreshToken = await authRepository.getActiveRefreshToken(
-    refreshToken,
-    userId,
-  );
-
-  if (!activeRefreshToken) {
-    logger.warn({ userId }, "Refresh token is not active");
-    throw new AuthenticationError("Refresh token is not active");
-  }
-
   const user = await userService.getById(userId);
+
   const newRefreshToken = await jwtService.createRefreshToken(user.id);
   const newAccessToken = await jwtService.createAccessToken(user);
 
-  await authRepository.setActiveRefreshToken({
+  await authRepository.rotateActiveRefreshToken(refreshToken, {
     userId: user.id,
     refreshToken: newRefreshToken,
     expiresAt: new Date(Date.now() + config.REFRESH_TOKEN_EXPIRATION),
@@ -113,8 +104,12 @@ async function refreshToken(req: Request, res: Response) {
   logger.debug({ userId }, "Access token refreshed");
 }
 
-async function logout(res: Response) {
+async function logout(req: Request, res: Response) {
+  if (req.userId == null) {
+    throw new AuthenticationError("User is not logged In");
+  }
   cookiesService.clearCookiesInResponse(res);
+  await authRepository.deleteActiveRefreshToken(req.userId);
   logger.debug("User logged out, cookies cleared");
 }
 

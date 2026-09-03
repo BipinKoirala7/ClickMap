@@ -2,6 +2,7 @@ import { config } from "@/config/index.ts";
 import { AuthenticationError } from "@/errors/Errors.ts";
 import * as jose from "jose";
 import type { User } from "./auth.schema.ts";
+import { nanoid } from "nanoid";
 
 const ACCESS_TOKEN_TYPE = "ACCESS_TOKEN";
 const REFRESH_TOKEN_TYPE = "REFRESH_TOKEN";
@@ -21,6 +22,7 @@ async function createAccessToken(user: User): Promise<string> {
     .setSubject(user.id)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(new Date())
+    .setJti(nanoid())
     .setExpirationTime(accessTokenExpirationTime)
     .sign(secret);
 
@@ -40,6 +42,7 @@ async function createRefreshToken(userId: string): Promise<string> {
     .setSubject(userId)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(new Date())
+    .setJti(nanoid())
     .setExpirationTime(refreshTokenExpirationSeconds)
     .sign(secret);
 
