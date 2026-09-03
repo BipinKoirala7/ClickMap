@@ -19,6 +19,7 @@ const VALID_USER = {
 const REGISTER_PATH = "/api/v1/auth/register";
 const LOGIN_PATH = "/api/v1/auth/login";
 const REFRESH_PATH = "/api/v1/auth/refresh";
+const LOGOUT_PATH = "/api/v1/auth/logout";
 
 let app: Express;
 
@@ -34,6 +35,33 @@ afterAll(async () => {
 beforeEach(async () => {
   await clearTestDb();
 });
+
+function extractCookieValue(
+  setCookieHeader: string[] | undefined,
+  cookieName: string,
+): string | undefined {
+  const raw = setCookieHeader?.find((c) => c.startsWith(`${cookieName}=`));
+  return raw?.split(";")[0]?.split("=")[1];
+}
+
+async function loginAndGetCookies() {
+  const loginRes = await request(app).post(LOGIN_PATH).send({
+    email: VALID_USER.email,
+    password: VALID_USER.password,
+  });
+
+  const setCookie = (loginRes.headers["set-cookie"] ?? []) as string[];
+  const refreshToken = extractCookieValue(setCookie, "refreshToken");
+  const accessToken = extractCookieValue(setCookie, "accessToken");
+
+  if (!refreshToken || !accessToken) {
+    throw new Error(
+      "Login did not return the expected auth cookies — check LOGIN_PATH test above",
+    );
+  }
+
+  return { refreshToken, accessToken, setCookie };
+}
 
 describe("POST /auth/register", () => {
   it("registers a new user and returns 200 with no data payload", async () => {
@@ -153,33 +181,6 @@ describe("POST /auth/refresh", () => {
     await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
   });
 
-  function extractCookieValue(
-    setCookieHeader: string[] | undefined,
-    cookieName: string,
-  ): string | undefined {
-    const raw = setCookieHeader?.find((c) => c.startsWith(`${cookieName}=`));
-    return raw?.split(";")[0]?.split("=")[1];
-  }
-
-  async function loginAndGetCookies() {
-    const loginRes = await request(app).post(LOGIN_PATH).send({
-      email: VALID_USER.email,
-      password: VALID_USER.password,
-    });
-
-    const setCookie = (loginRes.headers["set-cookie"] ?? []) as string[];
-    const refreshToken = extractCookieValue(setCookie, "refreshToken");
-    const accessToken = extractCookieValue(setCookie, "accessToken");
-
-    if (!refreshToken || !accessToken) {
-      throw new Error(
-        "Login did not return the expected auth cookies — check LOGIN_PATH test above",
-      );
-    }
-
-    return { refreshToken, accessToken, setCookie };
-  }
-
   it("issues a new access + refresh token pair for a valid, active refresh token", async () => {
     const { refreshToken: oldRefreshToken } = await loginAndGetCookies();
 
@@ -266,5 +267,97 @@ describe("POST /auth/refresh", () => {
       statusCode: 200,
       message: "Token Refreshed",
     });
+  });
+});
+
+describe("POST /auth/logout", () => {
+  beforeEach(async () => {
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+  });
+
+  it("logs out a valid session: 200, clears cookies, and invalidates the refresh token", async () => {
+    const { refreshToken } = await loginAndGetCookies();
+
+    const res = await request(app)
+      .post(LOGOUT_PATH)
+      .set("Cookie", [`refreshToken=${refreshToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      success: true,
+      statusCode: 200,
+      message: "User Logged Out",
+      data: null,
+    });
+
+    // clearCookiesInResponse should have touched both cookies
+    const setCookie = (res.headers["set-cookie"] ?? []) as string[];
+    const cookieString = setCookie.join(";");
+    expect(cookieString).toMatch(/refreshToken/i);
+    expect(cookieString).toMatch(/accessToken/i);
+
+    // Functional proof of invalidation: authRepository.deleteActiveRefreshToken
+    // removed the row, so rotateActiveRefreshToken's lookup on a subsequent
+    // /refresh call finds nothing and throws "Refresh token is not active",
+    // even though the JWT itself is still cryptographically valid.
+    const refreshAfterLogout = await request(app)
+      .post(REFRESH_PATH)
+      .set("Cookie", [`refreshToken=${refreshToken}`]);
+
+    expect(refreshAfterLogout.status).toBe(401);
+    expect(refreshAfterLogout.body.message).toBe("Refresh token is not active");
+  });
+
+  it("returns 401 when no refresh token cookie is sent", async () => {
+    const res = await request(app).post(LOGOUT_PATH);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User is not logged In");
+  });
+
+  it("returns 401 when only the access token cookie is sent (no refresh cookie)", async () => {
+    const { accessToken } = await loginAndGetCookies();
+
+    const res = await request(app)
+      .post(LOGOUT_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`]);
+
+    // authenticateRefreshToken only ever looks at the refresh cookie via
+    // cookiesService.getRefreshCookiesFromRequest, so an access-token-only
+    // request is indistinguishable from "no token at all" here.
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User is not logged In");
+  });
+
+  it("returns 401 for a malformed/invalid refresh token", async () => {
+    const res = await request(app)
+      .post(LOGOUT_PATH)
+      .set("Cookie", ["refreshToken=not-a-real-jwt"]);
+
+    expect(res.status).toBe(401);
+    // Mirrors the equivalent /refresh test's expectation for the same
+    // malformed-token input hitting jwtService.verifyRefreshToken.
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
+  });
+
+  it("logging out twice with the same still-valid JWT succeeds both times (idempotent)", async () => {
+    const { refreshToken } = await loginAndGetCookies();
+
+    await request(app)
+      .post(LOGOUT_PATH)
+      .set("Cookie", [`refreshToken=${refreshToken}`])
+      .expect(200);
+
+    // authService.logout() has no "is this token still active" check before
+    // deleting — it just calls deleteActiveRefreshToken(req.userId), which is
+    // a no-op if the row is already gone. As long as the JWT itself hasn't
+    // expired, authenticateRefreshToken lets a second logout through too.
+    // This pins that (arguably loose) behavior rather than assuming it.
+    const res = await request(app)
+      .post(LOGOUT_PATH)
+      .set("Cookie", [`refreshToken=${refreshToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("User Logged Out");
   });
 });
