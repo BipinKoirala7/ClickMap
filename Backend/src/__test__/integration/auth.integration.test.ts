@@ -210,7 +210,7 @@ describe("POST /auth/refresh", () => {
     const res = await request(app).post(REFRESH_PATH);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("Refresh token is missing in the request");
+    expect(res.body.message).toBe("User is not logged In");
   });
 
   it("returns 401 for a malformed/invalid refresh token", async () => {

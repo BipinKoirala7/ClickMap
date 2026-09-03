@@ -167,6 +167,10 @@ describe("POST /auth/refresh-token", () => {
   const REFRESH_TOKEN_ROUTE = "/api/v1/auth/refresh";
 
   beforeEach(() => {
+    vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+      "valid-refresh-token",
+    );
+    vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue("user-123");
     vi.clearAllMocks();
   });
 
@@ -190,13 +194,13 @@ describe("POST /auth/refresh-token", () => {
 
   it("returns 401 when authService.refreshToken throws AuthenticationError", async () => {
     vi.mocked(authService.refreshToken).mockRejectedValue(
-      new AuthenticationError("Refresh token is missing in the request"),
+      new AuthenticationError("User is not logged In"),
     );
 
     const res = await server.post(REFRESH_TOKEN_ROUTE);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("Refresh token is missing in the request");
+    expect(res.body.message).toBe("User is not logged In");
   });
 
   it("returns 401 with session-expired message when authService.refreshToken throws JWTExpired", async () => {
@@ -244,10 +248,10 @@ describe("POST /auth/logout", () => {
 
   describe("when the access token is valid", () => {
     beforeEach(() => {
-      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
-        "valid-access-token",
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
+        "valid-refresh-token",
       );
-      vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+      vi.mocked(jwtService.verifyRefreshToken).mockResolvedValue("user-123");
     });
 
     it("should logout successfully and clear cookies", async () => {
@@ -266,9 +270,7 @@ describe("POST /auth/logout", () => {
     });
 
     it("should return 500 if authService.logout throws an unexpected error", async () => {
-      vi.mocked(authService.logout).mockRejectedValue(
-        new AppError("db down", 500),
-      );
+      vi.mocked(authService.logout).mockRejectedValue(new Error("db down"));
 
       const response = await server.post(LOGOUT_PATH);
 
@@ -282,7 +284,7 @@ describe("POST /auth/logout", () => {
 
   describe("when the access token is missing", () => {
     it("should return 401 MissingTokenError and never call authService.logout", async () => {
-      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
         null,
       );
 
@@ -299,27 +301,29 @@ describe("POST /auth/logout", () => {
 
   describe("when the access token is expired", () => {
     it("should return 401 with a session-expired message", async () => {
-      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
         "expired-token",
       );
-      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      vi.mocked(jwtService.verifyRefreshToken).mockRejectedValue(
         new JWTExpired("exp claim timestamp check failed", {}),
       );
 
       const response = await server.post(LOGOUT_PATH);
 
       expect(response.status).toBe(401);
-      expect(response.body.message).toMatch("User is not logged In");
+      expect(response.body.message).toMatch(
+        "User Session expired, Please Log in again",
+      );
       expect(authService.logout).not.toHaveBeenCalled();
     });
   });
 
   describe("when the access token is malformed", () => {
     it("should return 401 for an invalid JWT", async () => {
-      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
         "not-a-jwt",
       );
-      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      vi.mocked(jwtService.verifyRefreshToken).mockRejectedValue(
         new JWTInvalid("Invalid JWT"),
       );
 
@@ -332,10 +336,10 @@ describe("POST /auth/logout", () => {
 
   describe("when the access token signature is invalid", () => {
     it("should return 401 for a signature verification failure", async () => {
-      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
         "tampered-token",
       );
-      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      vi.mocked(jwtService.verifyRefreshToken).mockRejectedValue(
         new JWSSignatureVerificationFailed("signature verification failed"),
       );
 
