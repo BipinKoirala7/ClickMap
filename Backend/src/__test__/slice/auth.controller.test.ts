@@ -1,17 +1,19 @@
 import app from "@/app";
 import type { RegisterUserDto } from "@/modules/auth/auth.schema";
 import { authService } from "@/modules/auth/auth.service";
-import { success, ZodError } from "zod";
+import { ZodError } from "zod";
 import request from "supertest";
 import type TestAgent from "supertest/lib/agent";
 import { describe, expect, it, beforeAll, vi, beforeEach } from "vitest";
 import AppError from "@/errors/AppError";
 import { AuthenticationError, UserNotFoundError } from "@/errors/Errors";
+import {
+  JWSSignatureVerificationFailed,
+  JWTExpired,
+  JWTInvalid,
+} from "jose/errors";
 import { cookiesService } from "@/modules/auth/cookies.service";
 import { jwtService } from "@/modules/auth/jwt.service";
-import { authRepository } from "@/modules/auth/auth.repository";
-import { userService } from "@/modules/user/user.service";
-import { JWTExpired } from "jose/errors";
 
 vi.mock("@/modules/auth/auth.service.ts");
 vi.mock("@/modules/auth/jwt.service.ts");
@@ -230,5 +232,117 @@ describe("POST /auth/refresh-token", () => {
 
     expect(res.status).toBe(500);
     expect(res.body.message).toBe("Unexpected Error Occured");
+  });
+});
+
+describe("POST /auth/logout", () => {
+  const LOGOUT_PATH = "/api/v1/auth/logout";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("when the access token is valid", () => {
+    beforeEach(() => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "valid-access-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    });
+
+    it("should logout successfully and clear cookies", async () => {
+      vi.mocked(authService.logout).mockResolvedValue(undefined);
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        statusCode: 200,
+        data: null,
+        message: "User Logged Out",
+        success: true,
+      });
+      expect(authService.logout).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return 500 if authService.logout throws an unexpected error", async () => {
+      vi.mocked(authService.logout).mockRejectedValue(
+        new AppError("db down", 500),
+      );
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 500,
+      });
+    });
+  });
+
+  describe("when the access token is missing", () => {
+    it("should return 401 MissingTokenError and never call authService.logout", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        null,
+      );
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 401,
+      });
+      expect(authService.logout).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is expired", () => {
+    it("should return 401 with a session-expired message", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "expired-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTExpired("exp claim timestamp check failed", {}),
+      );
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toMatch("User is not logged In");
+      expect(authService.logout).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is malformed", () => {
+    it("should return 401 for an invalid JWT", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "not-a-jwt",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTInvalid("Invalid JWT"),
+      );
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.logout).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token signature is invalid", () => {
+    it("should return 401 for a signature verification failure", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "tampered-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWSSignatureVerificationFailed("signature verification failed"),
+      );
+
+      const response = await server.post(LOGOUT_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.logout).not.toHaveBeenCalled();
+    });
   });
 });

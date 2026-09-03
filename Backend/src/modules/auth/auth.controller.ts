@@ -23,8 +23,8 @@ async function refreshTokenController(req: Request, res: Response) {
     .json(RestApiResponse.success(200, "Token Refreshed", null));
 }
 
-async function logoutController(_req: Request, res: Response) {
-  await authService.logout(res);
+async function logoutController(req: Request, res: Response) {
+  await authService.logout(req, res);
   return res
     .status(200)
     .json(RestApiResponse.success(200, "User Logged Out", null));
