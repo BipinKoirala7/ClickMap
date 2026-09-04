@@ -6,7 +6,12 @@ import request from "supertest";
 import type TestAgent from "supertest/lib/agent";
 import { describe, expect, it, beforeAll, vi, beforeEach } from "vitest";
 import AppError from "@/errors/AppError";
-import { AuthenticationError, UserNotFoundError } from "@/errors/Errors";
+import {
+  AuthenticationError,
+  UserAlreadyActiveError,
+  UserAlreadyDeactivatedError,
+  UserNotFoundError,
+} from "@/errors/Errors";
 import {
   JWSSignatureVerificationFailed,
   JWTExpired,
@@ -14,6 +19,7 @@ import {
 } from "jose/errors";
 import { cookiesService } from "@/modules/auth/cookies.service";
 import { jwtService } from "@/modules/auth/jwt.service";
+import type { QueryResult } from "node_modules/@types/pg";
 
 vi.mock("@/modules/auth/auth.service.ts");
 vi.mock("@/modules/auth/jwt.service.ts");
@@ -347,6 +353,282 @@ describe("POST /auth/logout", () => {
 
       expect(response.status).toBe(401);
       expect(authService.logout).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("POST /auth/activate", () => {
+  const ACTIVATE_PATH = "/api/v1/auth/activate";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("when the access token is valid", () => {
+    beforeEach(() => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "valid-access-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    });
+
+    it("should activate the user and return 200", async () => {
+      vi.mocked(authService.activateUserStatus).mockResolvedValue(
+        {} as QueryResult<never>,
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        statusCode: 200,
+        message: "User Account Activated",
+        data: null,
+        success: true,
+      });
+      expect(authService.activateUserStatus).toHaveBeenCalledWith("user-123");
+    });
+
+    it("should return 409 when the user is already active", async () => {
+      vi.mocked(authService.activateUserStatus).mockRejectedValue(
+        new UserAlreadyActiveError("User is already active"),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(409);
+      expect(response.body.message).toBe("User is already active");
+    });
+
+    it("should return 404 when the user does not exist", async () => {
+      vi.mocked(authService.activateUserStatus).mockRejectedValue(
+        new UserNotFoundError("User not found"),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe("User not found");
+    });
+
+    it("should return 500 when authService.activateUserStatus throws an unexpected error", async () => {
+      vi.mocked(authService.activateUserStatus).mockRejectedValue(
+        new Error("db down"),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 500,
+      });
+    });
+  });
+
+  describe("when the access token is missing", () => {
+    it("should return 401 MissingTokenError and never call authService.activateUserStatus", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        null,
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 401,
+      });
+      expect(authService.activateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is expired", () => {
+    it("should return 401 with a session-expired message", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "expired-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTExpired("exp claim timestamp check failed", {}),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toMatch(
+        "User Session expired, Please Log in again",
+      );
+      expect(authService.activateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is malformed", () => {
+    it("should return 401 for an invalid JWT", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "not-a-jwt",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTInvalid("Invalid JWT"),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.activateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token signature is invalid", () => {
+    it("should return 401 for a signature verification failure", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "tampered-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWSSignatureVerificationFailed("signature verification failed"),
+      );
+
+      const response = await server.post(ACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.activateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("POST /auth/deactivate", () => {
+  const DEACTIVATE_PATH = "/api/v1/auth/deactivate";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe("when the access token is valid", () => {
+    beforeEach(() => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "valid-access-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    });
+
+    it("should deactivate the user and return 200", async () => {
+      vi.mocked(authService.deactivateUserStatus).mockResolvedValue(
+        {} as QueryResult<never>,
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        statusCode: 200,
+        message: "User Account DeActivated",
+        data: null,
+        success: true,
+      });
+      expect(authService.deactivateUserStatus).toHaveBeenCalledWith("user-123");
+    });
+
+    it("should return 409 when the user is already deactivated", async () => {
+      vi.mocked(authService.deactivateUserStatus).mockRejectedValue(
+        new UserAlreadyDeactivatedError("User is already deactivated"),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(409);
+      expect(response.body.message).toBe("User is already deactivated");
+    });
+
+    it("should return 404 when the user does not exist", async () => {
+      vi.mocked(authService.deactivateUserStatus).mockRejectedValue(
+        new UserNotFoundError("User not found"),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe("User not found");
+    });
+
+    it("should return 500 when authService.deactivateUserStatus throws an unexpected error", async () => {
+      vi.mocked(authService.deactivateUserStatus).mockRejectedValue(
+        new Error("db down"),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 500,
+      });
+    });
+  });
+
+  describe("when the access token is missing", () => {
+    it("should return 401 MissingTokenError and never call authService.deactivateUserStatus", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        null,
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body).toMatchObject({
+        success: false,
+        statusCode: 401,
+      });
+      expect(authService.deactivateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is expired", () => {
+    it("should return 401 with a session-expired message", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "expired-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTExpired("exp claim timestamp check failed", {}),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toMatch(
+        "User Session expired, Please Log in again",
+      );
+      expect(authService.deactivateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token is malformed", () => {
+    it("should return 401 for an invalid JWT", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "not-a-jwt",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWTInvalid("Invalid JWT"),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.deactivateUserStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("when the access token signature is invalid", () => {
+    it("should return 401 for a signature verification failure", async () => {
+      vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+        "tampered-token",
+      );
+      vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+        new JWSSignatureVerificationFailed("signature verification failed"),
+      );
+
+      const response = await server.post(DEACTIVATE_PATH);
+
+      expect(response.status).toBe(401);
+      expect(authService.deactivateUserStatus).not.toHaveBeenCalled();
     });
   });
 });

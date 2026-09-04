@@ -20,6 +20,8 @@ const REGISTER_PATH = "/api/v1/auth/register";
 const LOGIN_PATH = "/api/v1/auth/login";
 const REFRESH_PATH = "/api/v1/auth/refresh";
 const LOGOUT_PATH = "/api/v1/auth/logout";
+const ACTIVATE_PATH = "/api/v1/auth/activate";
+const DEACTIVATE_PATH = "/api/v1/auth/deactivate";
 
 let app: Express;
 
@@ -359,5 +361,142 @@ describe("POST /auth/logout", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toBe("User Logged Out");
+  });
+});
+
+describe("POST /auth/activate", () => {
+  beforeEach(async () => {
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+  });
+
+  it("activates a deactivated user and returns 200", async () => {
+    const { accessToken } = await loginAndGetCookies();
+
+    // Deactivate directly in the DB so there's something for the endpoint to do
+    const db = getTestDb();
+    await db.execute(
+      `UPDATE "users" SET "isActive" = false WHERE email = '${VALID_USER.email}'`,
+    );
+
+    const res = await request(app)
+      .post(ACTIVATE_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      success: true,
+      statusCode: 200,
+      message: "User Account Activated",
+      data: null,
+    });
+
+    const rows = await db.execute(
+      `SELECT "isActive" FROM "users" WHERE email = '${VALID_USER.email}'`,
+    );
+    expect(rows.rows[0]!.isActive).toBe(true);
+  });
+
+  it("returns a conflict error when the user is already active", async () => {
+    const { accessToken } = await loginAndGetCookies();
+    // A freshly registered user is active by default — no setup needed.
+
+    const res = await request(app)
+      .post(ACTIVATE_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`]);
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe("User is already active");
+  });
+
+  it("returns 401 when no access token cookie is sent", async () => {
+    const res = await request(app).post(ACTIVATE_PATH);
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 401 for a malformed/invalid access token", async () => {
+    const res = await request(app)
+      .post(ACTIVATE_PATH)
+      .set("Cookie", ["accessToken=not-a-real-jwt"]);
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 401 when no access token cookie is sent", async () => {
+    const res = await request(app).post(ACTIVATE_PATH);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User is not logged In");
+  });
+});
+
+describe("POST /auth/deactivate", () => {
+  beforeEach(async () => {
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+  });
+
+  it("deactivates an active user and returns 200", async () => {
+    const { accessToken } = await loginAndGetCookies();
+
+    const res = await request(app)
+      .post(DEACTIVATE_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`]);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      success: true,
+      statusCode: 200,
+      message: "User Account DeActivated",
+      data: null,
+    });
+
+    const db = getTestDb();
+    const rows = await db.execute(
+      `SELECT "isActive" FROM "users" WHERE email = '${VALID_USER.email}'`,
+    );
+    expect(rows.rows[0]!.isActive).toBe(false);
+  });
+
+  it("returns a conflict error when the user is already deactivated", async () => {
+    const { accessToken } = await loginAndGetCookies();
+
+    await request(app)
+      .post(DEACTIVATE_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`])
+      .expect(200);
+
+    const res = await request(app)
+      .post(DEACTIVATE_PATH)
+      .set("Cookie", [`accessToken=${accessToken}`]);
+
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe("User is already deactivated");
+  });
+
+  it("returns 401 when no access token cookie is sent", async () => {
+    const res = await request(app).post(DEACTIVATE_PATH);
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 401 for a malformed/invalid access token", async () => {
+    const res = await request(app)
+      .post(DEACTIVATE_PATH)
+      .set("Cookie", ["accessToken=not-a-real-jwt"]);
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("returns 401 when no access token cookie is sent", async () => {
+    const res = await request(app).post(DEACTIVATE_PATH);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User is not logged In");
   });
 });
