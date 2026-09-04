@@ -13,7 +13,12 @@ import { userService } from "@/modules/user/user.service";
 import { jwtService } from "@/modules/auth/jwt.service";
 import { cookiesService } from "@/modules/auth/cookies.service";
 import { logger } from "@/lib/logger";
-import { UserNotFoundError, AuthenticationError } from "@/errors/Errors";
+import {
+  UserNotFoundError,
+  AuthenticationError,
+  UserAlreadyActiveError,
+  UserAlreadyDeactivatedError,
+} from "@/errors/Errors";
 import { config } from "@/config";
 import type { Request, Response } from "express";
 import { authRepository } from "@/modules/auth/auth.repository";
@@ -311,7 +316,6 @@ describe("Refresh Token", () => {
   });
 
   it("should refresh token successfully", async () => {
-
     // Arrange
     vi.mocked(cookiesService.getRefreshCookiesFromRequest).mockReturnValue(
       refreshToken,
@@ -329,7 +333,7 @@ describe("Refresh Token", () => {
       req,
     );
     expect(jwtService.verifyRefreshToken).toHaveBeenCalledWith(refreshToken);
-    expect(authRepository.rotateActiveRefreshToken).toHaveBeenCalled()
+    expect(authRepository.rotateActiveRefreshToken).toHaveBeenCalled();
     expect(userService.getById).toHaveBeenCalledWith(mockUser.id);
     expect(jwtService.createAccessToken).toHaveBeenCalledWith(mockUser);
     expect(cookiesService.setAccessCookiesInResponse).toHaveBeenCalledWith(
@@ -499,5 +503,214 @@ describe("Refresh Token", () => {
         "Access token refreshed",
       );
     });
+  });
+});
+
+const USER_ID = "user-123";
+describe("activateUserStatus", () => {
+  it("activates an inactive user and returns the repository result", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: false,
+    } as any);
+    const updateResult = { affectedRows: 1 };
+    vi.mocked(userRepository.updateUserStatus).mockResolvedValueOnce(
+      updateResult as any,
+    );
+
+    const result = await authService.activateUserStatus(USER_ID);
+
+    expect(userRepository.updateUserStatus).toHaveBeenCalledWith(USER_ID, true);
+    expect(logger.info).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "User activated",
+    );
+    expect(result).toBe(updateResult);
+  });
+
+  it("throws AuthenticationError when id is undefined", async () => {
+    await expect(authService.activateUserStatus(undefined)).rejects.toThrow(
+      AuthenticationError,
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      "activateUserStatus called with undefined ID",
+    );
+    expect(userService.getById).not.toHaveBeenCalled();
+  });
+
+  it("throws AuthenticationError when id is null (loose equality check)", async () => {
+    // `id == undefined` also matches null; the type signature is string | undefined
+    // but this guards against runtime values that bypass TS checks.
+    await expect(
+      authService.activateUserStatus(null as unknown as undefined),
+    ).rejects.toThrow(AuthenticationError);
+    expect(userService.getById).not.toHaveBeenCalled();
+  });
+
+  it("propagates UserNotFoundError when the user does not exist", async () => {
+    vi.mocked(userService.getById).mockRejectedValueOnce(
+      new UserNotFoundError(),
+    );
+
+    await expect(authService.activateUserStatus(USER_ID)).rejects.toThrow(
+      UserNotFoundError,
+    );
+    expect(userRepository.updateUserStatus).not.toHaveBeenCalled();
+  });
+
+  it("throws UserAlreadyActiveError when the user is already active", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: true,
+    } as any);
+
+    await expect(authService.activateUserStatus(USER_ID)).rejects.toThrow(
+      UserAlreadyActiveError,
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "Attempted to activate an already active user",
+    );
+    expect(userRepository.updateUserStatus).not.toHaveBeenCalled();
+  });
+
+  it("activates an inactive user and returns the repository result", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: false,
+    } as any);
+    const updateResult = { affectedRows: 1 };
+    vi.mocked(userRepository.updateUserStatus).mockResolvedValueOnce(
+      updateResult as any,
+    );
+
+    const result = await authService.activateUserStatus(USER_ID);
+
+    expect(userRepository.updateUserStatus).toHaveBeenCalledWith(USER_ID, true);
+    expect(logger.info).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "User activated",
+    );
+    expect(result).toBe(updateResult);
+  });
+
+  it("propagates errors thrown by the repository update", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: false,
+    } as any);
+    const dbError = new Error("db connection lost");
+    vi.mocked(userRepository.updateUserStatus).mockRejectedValueOnce(dbError);
+
+    await expect(authService.activateUserStatus(USER_ID)).rejects.toThrow(
+      dbError,
+    );
+    expect(logger.info).not.toHaveBeenCalled();
+  });
+});
+
+describe("deactivateUserStatus", () => {
+  it("deactivates an active user and returns the repository result", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: true,
+    } as any);
+    const updateResult = { affectedRows: 1 };
+    vi.mocked(userRepository.updateUserStatus).mockResolvedValueOnce(
+      updateResult as any,
+    );
+
+    const result = await authService.deactivateUserStatus(USER_ID);
+
+    expect(userRepository.updateUserStatus).toHaveBeenCalledWith(
+      USER_ID,
+      false,
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "User deactivated",
+    );
+    expect(result).toBe(updateResult);
+  });
+
+  it("throws AuthenticationError when id is undefined", async () => {
+    await expect(authService.deactivateUserStatus(undefined)).rejects.toThrow(
+      AuthenticationError,
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      "deactivateUserStatus called with undefined ID",
+    );
+    expect(userService.getById).not.toHaveBeenCalled();
+  });
+
+  it("throws AuthenticationError when id is null (loose equality check)", async () => {
+    await expect(
+      authService.deactivateUserStatus(null as unknown as undefined),
+    ).rejects.toThrow(AuthenticationError);
+    expect(userService.getById).not.toHaveBeenCalled();
+  });
+
+  it("propagates UserNotFoundError when the user does not exist", async () => {
+    vi.mocked(userService.getById).mockRejectedValueOnce(
+      new UserNotFoundError(),
+    );
+
+    await expect(authService.deactivateUserStatus(USER_ID)).rejects.toThrow(
+      UserNotFoundError,
+    );
+    expect(userRepository.updateUserStatus).not.toHaveBeenCalled();
+  });
+
+  it("throws UserAlreadyDeactivatedError when the user is already inactive", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: false,
+    } as any);
+
+    await expect(authService.deactivateUserStatus(USER_ID)).rejects.toThrow(
+      UserAlreadyDeactivatedError,
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "Attempted to deactivate an already deactivated user",
+    );
+    expect(userRepository.updateUserStatus).not.toHaveBeenCalled();
+  });
+
+  it("deactivates an active user and returns the repository result", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: true,
+    } as any);
+    const updateResult = { affectedRows: 1 };
+    vi.mocked(userRepository.updateUserStatus).mockResolvedValueOnce(
+      updateResult as any,
+    );
+
+    const result = await authService.deactivateUserStatus(USER_ID);
+
+    expect(userRepository.updateUserStatus).toHaveBeenCalledWith(
+      USER_ID,
+      false,
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      { userId: USER_ID },
+      "User deactivated",
+    );
+    expect(result).toBe(updateResult);
+  });
+
+  it("propagates errors thrown by the repository update", async () => {
+    vi.mocked(userService.getById).mockResolvedValueOnce({
+      id: USER_ID,
+      isActive: true,
+    } as any);
+    const dbError = new Error("db connection lost");
+    vi.mocked(userRepository.updateUserStatus).mockRejectedValueOnce(dbError);
+
+    await expect(authService.deactivateUserStatus(USER_ID)).rejects.toThrow(
+      dbError,
+    );
+    expect(logger.info).not.toHaveBeenCalled();
   });
 });
