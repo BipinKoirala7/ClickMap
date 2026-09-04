@@ -22,13 +22,13 @@ export class UserNotActiveError extends AppError {
 
 export class UserAlreadyActiveError extends AppError {
   constructor(message = "User is already active") {
-    super(message, 400);
+    super(message, 409);
   }
 }
 
 export class UserAlreadyDeactivatedError extends AppError {
   constructor(message = "User is already deactivated") {
-    super(message, 400);
+    super(message, 409);
   }
 }
 
