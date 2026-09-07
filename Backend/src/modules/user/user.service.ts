@@ -9,7 +9,7 @@ import {
 import type { User } from "../auth/auth.schema.ts";
 
 async function getUserById(id: string | undefined): Promise<PublicUserDto> {
-  if (!id) throw new AuthenticationError();
+  if (!id || id.length < 1) throw new AuthenticationError();
   const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
 
@@ -20,7 +20,7 @@ async function updateUser(
   id: string | undefined,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
-  if (!id) throw new AuthenticationError();
+  if (!id || id.length < 1) throw new AuthenticationError();
 
   const existingUser = await userRepository.findById(id);
   if (!existingUser) throw new UserNotFoundError();

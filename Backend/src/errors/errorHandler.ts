@@ -86,10 +86,6 @@ export function errorHandler(
       .json(RestApiResponse.error(422, "Please sent valid information"));
   }
 
-  if (error instanceof UserNotFoundError) {
-    return res.status(404).json(RestApiResponse.error(404, "User Not Found!"));
-  }
-
   return res
     .status(500)
     .json(RestApiResponse.error(500, "Unexpected Error Occured"));
