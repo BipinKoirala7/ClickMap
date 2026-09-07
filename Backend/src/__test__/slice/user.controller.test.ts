@@ -233,60 +233,200 @@ describe("GET /users/", () => {
 });
 
 describe("PUT /user Request", () => {
+  const UPDATE_USER_URL = "/api/v1/user/";
+  const validUpdateBody = {
+    name: "BipinKoirala",
+    userName: "bipin.koirala.123",
+  };
+
   it("returns 200 when token and update body is valid", async () => {
-    // Arrange
-    const accessToken = await jwtService.createAccessToken({
-      id: nanoid(),
-      email: user.email,
-    } as User);
-    const res = await server
-      .put("/api/v1/user")
-      .set("Cookie", [`accessToken=${accessToken}`])
-      .send({ name: "BipinKoirala", userName: "bipin.koirala.123" });
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "valid.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    vi.mocked(userServiceMock.updateUser).mockResolvedValue(undefined);
 
-    expect(res.statusCode).toBe(200);
-  });
-
-  it("returns 401 when token is invalid", async () => {
     const res = await request(app)
-      .put("/api/v1/user")
-      .set("Cookie", ["accessToken=garbage.invalid.token"]);
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=valid.jwt.token"])
+      .send(validUpdateBody);
 
-    expect(res.statusCode).toBe(401);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      success: true,
+      statusCode: 200,
+      message: "User Info Updated",
+    });
+    expect(userServiceMock.updateUser).toHaveBeenCalledWith(
+      "user-123",
+      validUpdateBody,
+    );
   });
 
-  it("returns 422 when update body is null", async () => {
-    userServiceMock.updateUser.mockThrow(
+  // --- Token errors ----------------------------------------------------------
+
+  it("returns 401 when no access token cookie is present", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(null);
+
+    const res = await request(app).put(UPDATE_USER_URL).send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toMatchObject({
+      success: false,
+      statusCode: 401,
+      message: "User is not logged In",
+    });
+    expect(jwtService.verifyAccessToken).not.toHaveBeenCalled();
+    expect(userServiceMock.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the access token cookie is an empty string", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue("");
+
+    const res = await request(app).put(UPDATE_USER_URL).send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User is not logged In");
+    expect(jwtService.verifyAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the access token is expired", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "expired.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      new JWTExpired('"exp" claim timestamp check failed', {}),
+    );
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=expired.jwt.token"])
+      .send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
+    expect(userServiceMock.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the access token is malformed/invalid", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "not-a-jwt",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      new JWTInvalid("Invalid Compact JWS"),
+    );
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=not-a-jwt"])
+      .send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(userServiceMock.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the access token signature verification fails", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "tampered.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      new JWSSignatureVerificationFailed("signature verification failed"),
+    );
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=tampered.jwt.token"])
+      .send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(userServiceMock.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when a token claim fails validation", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "wrong-audience.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockRejectedValue(
+      new JWTClaimValidationFailed(
+        'unexpected "aud" claim value',
+        {},
+        "aud",
+        "check_failed",
+      ),
+    );
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=wrong-audience.jwt.token"])
+      .send(validUpdateBody);
+
+    expect(res.status).toBe(401);
+    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(userServiceMock.updateUser).not.toHaveBeenCalled();
+  });
+
+  // --- Downstream errors -----------------------------------------------------
+
+  it("returns 404 when the authenticated user no longer exists", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "valid.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("ghost-user");
+    vi.mocked(userServiceMock.updateUser).mockRejectedValue(
+      new UserNotFoundError(),
+    );
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=valid.jwt.token"])
+      .send(validUpdateBody);
+
+    expect(res.status).toBe(404);
+    expect(res.body.message).toBe("User Not Found");
+  });
+
+  it("returns 422 when the update body fails schema validation", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "valid.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    vi.mocked(userServiceMock.updateUser).mockRejectedValue(
       new ZodError([
         {
           code: "invalid_type",
-          expected: "object",
-          path: [],
-          message: "Expected object, received null",
+          path: ["userName"],
+          message: "Expected string, received null",
+          expected: "string",
         },
       ]),
     );
-    const accessToken = await jwtService.createAccessToken({
-      id: nanoid(),
-      email: user.email,
-    } as User);
-    const res = await server
-      .put("/api/v1/user")
-      .set("Cookie", [`accessToken=${accessToken}`]);
-    expect(res.statusCode).toBe(422);
+
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=valid.jwt.token"])
+      .send({ name: "BipinKoirala", userName: null });
+
+    expect(res.status).toBe(422);
+    expect(res.body.message).toBe("Please sent valid information");
   });
 
-  it("returns 404 when User is not found", async () => {
-    userServiceMock.updateUser.mockRejectedValue(new UserNotFoundError());
-    const accessToken = await jwtService.createAccessToken({
-      id: nanoid(),
-      email: user.email,
-    } as User);
+  it("returns 500 when an unexpected error is thrown downstream", async () => {
+    vi.mocked(cookiesService.getAccessCookiesFromRequest).mockReturnValue(
+      "valid.jwt.token",
+    );
+    vi.mocked(jwtService.verifyAccessToken).mockResolvedValue("user-123");
+    vi.mocked(userServiceMock.updateUser).mockRejectedValue(
+      new Error("connection reset"),
+    );
 
-    const res = await server
-      .put("/api/v1/user")
-      .set("Cookie", [`accessToken=${accessToken}`]);
+    const res = await request(app)
+      .put(UPDATE_USER_URL)
+      .set("Cookie", ["accessToken=valid.jwt.token"])
+      .send(validUpdateBody);
 
-    expect(res.statusCode).toBe(404);
+    expect(res.status).toBe(500);
+    expect(res.body.message).toBe("Unexpected Error Occured");
   });
 });
