@@ -1,11 +1,8 @@
 import { beforeAll, afterAll, beforeEach, describe, it, expect } from "vitest";
 import request from "supertest";
 import type { Express } from "express";
-import { clearTestDb, getTestDb, startTestDb, stopTestDb } from "../testdb";
+import { clearTestDb, startTestDb, stopTestDb } from "../testdb";
 import { buildTestApp } from "../testApp";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
-
 const VALID_USER = {
   userName: "bipin_test",
   name: "Bipin Test",
