@@ -143,4 +143,130 @@ describe("Update User", () => {
       userName: updateUserInfo.userName,
     });
   });
+
+  it("should throw error when userId is not provided", async () => {
+    await expect(userService.updateUser(undefined, {})).rejects.toThrow(
+      AuthenticationError,
+    );
+    expect(mockedUserRepository.findById).not.toHaveBeenCalled();
+  });
+
+  it("should throw AuthenticationError when userId is an empty string", async () => {
+    await expect(userService.updateUser("", {})).rejects.toThrow(
+      AuthenticationError,
+    );
+    expect(mockedUserRepository.findById).not.toHaveBeenCalled();
+  });
+
+  it("should thow error when userId with user is not found", async () => {
+    // Arrange
+    mockedUserRepository.findById.mockResolvedValue(undefined);
+
+    // Act & Assert
+    await expect(userService.updateUser("some-wrong-id", {})).rejects.toThrow(
+      UserNotFoundError,
+    );
+    expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("should throw ZodError when update payload fails schema validation", async () => {
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+
+    const invalidUpdate = {
+      name: 123, // invalid type
+    } as unknown as UpdateUserDto;
+
+    await expect(
+      userService.updateUser(mockedUser.id, invalidUpdate),
+    ).rejects.toThrow(ZodError);
+    expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("should update user", async () => {
+    // Arrange
+    const updateUserInfo = {
+      name: "Bipin Koirala",
+      userName: "bipin.123.123",
+      isActive: true,
+    } as UpdateUserDto;
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+
+    // Act
+    await userService.updateUser(mockedUser.id, updateUserInfo);
+
+    // Assert
+    expect(userRepository.findById).toHaveBeenCalledWith(mockedUser.id);
+    expect(userRepository.updateUserById).toHaveBeenCalledWith(mockedUser.id, {
+      name: updateUserInfo.name,
+      userName: updateUserInfo.userName,
+    });
+  });
+
+  it("should strip fields not allowed by the update schema (email, password, plan)", async () => {
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+
+    const updateUserInfo = {
+      name: "New Name",
+      userName: "new.username",
+      email: "shouldnotupdate@gmail.com",
+      password: "ShouldNotUpdate@123",
+      plan: "pro",
+    } as unknown as UpdateUserDto;
+
+    await userService.updateUser(mockedUser.id, updateUserInfo);
+
+    expect(mockedUserRepository.updateUserById).toHaveBeenCalledWith(
+      mockedUser.id,
+      {
+        name: updateUserInfo.name,
+        userName: updateUserInfo.userName,
+      },
+    );
+  });
+
+  it("should support a partial update with only one field provided", async () => {
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+
+    const updateUserInfo = { name: "Only Name Updated" } as UpdateUserDto;
+
+    await userService.updateUser(mockedUser.id, updateUserInfo);
+
+    expect(mockedUserRepository.updateUserById).toHaveBeenCalledWith(
+      mockedUser.id,
+      { name: updateUserInfo.name, userName: undefined },
+    );
+  });
+
+  it("should propagate error when repository throws during findById", async () => {
+    const error = new Error("Database connection error");
+    mockedUserRepository.findById.mockRejectedValue(error);
+
+    await expect(
+      userService.updateUser(mockedUser.id, { name: "X" } as UpdateUserDto),
+    ).rejects.toThrow("Database connection error");
+    expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
+  });
+
+  it("should propagate error when repository throws during updateUserById", async () => {
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+    const error = new Error("Update failed");
+    mockedUserRepository.updateUserById.mockRejectedValue(error);
+
+    await expect(
+      userService.updateUser(mockedUser.id, {
+        name: "X",
+      } as UpdateUserDto),
+    ).rejects.toThrow("Update failed");
+  });
+
+  it("should call findById exactly once and updateUserById exactly once on success", async () => {
+    mockedUserRepository.findById.mockResolvedValue(mockedUser);
+
+    await userService.updateUser(mockedUser.id, {
+      name: "X",
+    } as UpdateUserDto);
+
+    expect(mockedUserRepository.findById).toHaveBeenCalledTimes(1);
+    expect(mockedUserRepository.updateUserById).toHaveBeenCalledTimes(1);
+  });
 });
