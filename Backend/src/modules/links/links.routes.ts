@@ -4,7 +4,7 @@ import { authenticate } from "@/middleware/authenticate.ts";
 
 const linkRouter = Router();
 
-// linkRouter.use(authenticate);
+linkRouter.use(authenticate);
 
 linkRouter.post("/", linkController.createLinkController);
 linkRouter.get("/", linkController.getAllLinksController);

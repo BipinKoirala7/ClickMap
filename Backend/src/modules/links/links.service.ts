@@ -11,11 +11,16 @@ import {
   type NewLink,
   type UpdateLinkDto,
 } from "./links.schema.ts";
-import { linkRepository } from "./links.repository.ts";
-import { userService } from "../user/user.service.ts";
+import { linkRepository } from "@/modules/links/links.repository.ts";
+import { userService } from "@/modules/user/user.service.ts";
 
-async function createLink(supabaseId: string, dto: CreateLinkDto) {
-  const user = await userService.getBySupabaseId(supabaseId);
+// TODO: Change the userId checker everywhere with this check
+async function createLink(userId: string | undefined, dto: CreateLinkDto) {
+  if (!userId || userId.trim().length < 1) {
+    throw new AuthenticationError();
+  }
+
+  const user = await userService.getById(userId);
   const link = createLinkSchema.parse(dto);
   const newLink: NewLink = {
     userId: user.id,
@@ -25,15 +30,15 @@ async function createLink(supabaseId: string, dto: CreateLinkDto) {
   await linkRepository.createLink(newLink);
 }
 
-async function getUserLinks(supabaseId: string | null) {
-  console.log("SupabaseId: " + supabaseId);
-  if (!supabaseId) throw new AuthenticationError();
-  const user = await userService.getBySupabaseId(supabaseId);
+async function getUserLinks(userId: string | undefined) {
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  const user = await userService.getById(userId);
   return await linkRepository.getUserLinks(user.id);
 }
 
-async function getLinkInfo(linkId: string, supabaseId: string) {
-  const user = await userService.getBySupabaseId(supabaseId);
+async function getLinkInfo(linkId: string, userId: string | undefined) {
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -42,10 +47,11 @@ async function getLinkInfo(linkId: string, supabaseId: string) {
 
 async function updateLink(
   linkId: string,
-  supabaseId: string,
+  userId: string | undefined,
   linkData: UpdateLinkDto,
 ) {
-  const user = await userService.getBySupabaseId(supabaseId);
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -54,8 +60,9 @@ async function updateLink(
   return await linkRepository.updateLink(linkId, user.id, data);
 }
 
-async function activateLink(linkId: string, supabaseId: string) {
-  const user = await userService.getBySupabaseId(supabaseId);
+async function activateLink(linkId: string, userId: string | undefined) {
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -63,8 +70,9 @@ async function activateLink(linkId: string, supabaseId: string) {
   return await linkRepository.activateLink(linkId, user.id);
 }
 
-async function deactivateLink(linkId: string, supabaseId: string) {
-  const user = await userService.getBySupabaseId(supabaseId);
+async function deactivateLink(linkId: string, userId: string | undefined) {
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();

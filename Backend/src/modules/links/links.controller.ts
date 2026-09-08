@@ -4,7 +4,7 @@ import RestApiResponse from "@/types/RestApiResponse.ts";
 import { LinkNotFoundError } from "@/errors/Errors.ts";
 
 async function createLinkController(req: Request, res: Response) {
-  await linkService.createLink(req.user!.sub, req.body);
+  await linkService.createLink(req.userId, req.body);
 
   res
     .status(201)
@@ -18,7 +18,7 @@ async function getAllLinksController(req: Request, res: Response) {
       RestApiResponse.success(
         200,
         "User Links Fetched Successfully",
-        await linkService.getUserLinks(req.user?.sub || null),
+        await linkService.getUserLinks(req.userId),
       ),
     );
 }
@@ -32,7 +32,7 @@ async function getLinkController(req: Request<{ id: string }>, res: Response) {
       RestApiResponse.success(
         200,
         "OK",
-        await linkService.getLinkInfo(linkId, req.user!.sub),
+        await linkService.getLinkInfo(linkId, req.userId),
       ),
     );
 }
@@ -44,7 +44,7 @@ async function updateLinkController(
   const linkId = req.params.id;
   if (!linkId) throw new LinkNotFoundError("Link ID is required");
 
-  await linkService.updateLink(linkId, req.user!.sub, req.body);
+  await linkService.updateLink(linkId, req.userId, req.body);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 
@@ -55,7 +55,7 @@ async function deactivateLinkController(
   const linkId = req.params.id;
   if (!linkId) throw new LinkNotFoundError("Link ID is required");
 
-  await linkService.deactivateLink(linkId, req.user!.sub);
+  await linkService.deactivateLink(linkId, req.userId);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 
@@ -66,7 +66,7 @@ async function activateLinkController(
   const linkId = req.params.id;
   if (!linkId) throw new LinkNotFoundError("Link ID is required");
 
-  await linkService.activateLink(linkId, req.user!.sub);
+  await linkService.activateLink(linkId, req.userId);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 
