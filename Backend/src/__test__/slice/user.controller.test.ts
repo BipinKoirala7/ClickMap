@@ -5,7 +5,6 @@ import { userService } from "@/modules/user/user.service";
 import type { PublicUserDto } from "@/modules/user/user.schema";
 import { jwtService } from "@/modules/auth/jwt.service";
 import type { User } from "@/modules/auth/auth.schema";
-import { nanoid } from "nanoid";
 import type TestAgent from "supertest/lib/agent";
 import { UserNotFoundError } from "@/errors/Errors";
 import { ZodError } from "zod";

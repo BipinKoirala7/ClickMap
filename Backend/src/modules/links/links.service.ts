@@ -14,8 +14,9 @@ import {
 import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 
+// TODO: Change the userId checker everywhere with this check
 async function createLink(userId: string | undefined, dto: CreateLinkDto) {
-  if (!userId || userId.length < 1) {
+  if (!userId || userId.trim().length < 1) {
     throw new AuthenticationError();
   }
 
@@ -30,13 +31,13 @@ async function createLink(userId: string | undefined, dto: CreateLinkDto) {
 }
 
 async function getUserLinks(userId: string | undefined) {
-  if (!userId) throw new AuthenticationError();
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
   return await linkRepository.getUserLinks(user.id);
 }
 
 async function getLinkInfo(linkId: string, userId: string | undefined) {
-  if (!userId) throw new AuthenticationError();
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
@@ -49,7 +50,7 @@ async function updateLink(
   userId: string | undefined,
   linkData: UpdateLinkDto,
 ) {
-  if (!userId) throw new AuthenticationError();
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
@@ -60,7 +61,7 @@ async function updateLink(
 }
 
 async function activateLink(linkId: string, userId: string | undefined) {
-  if (!userId) throw new AuthenticationError();
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
@@ -70,7 +71,7 @@ async function activateLink(linkId: string, userId: string | undefined) {
 }
 
 async function deactivateLink(linkId: string, userId: string | undefined) {
-  if (!userId) throw new AuthenticationError();
+  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
