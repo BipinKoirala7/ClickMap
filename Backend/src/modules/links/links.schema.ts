@@ -7,7 +7,7 @@ import { links } from "@/db/schema.ts";
 import z from "zod";
 
 export const createLinkSchema = createInsertSchema(links, {
-  expiresAt: (_schema) => z.coerce.date(),
+  expiresAt: (_schema) => z.coerce.date().optional(),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .refine(
