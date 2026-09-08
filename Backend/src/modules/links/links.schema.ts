@@ -8,6 +8,7 @@ import z from "zod";
 
 export const createLinkSchema = createInsertSchema(links, {
   expiresAt: (_schema) => z.coerce.date().optional(),
+  originalUrl: (_schema) => z.url().nonempty(),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .refine(

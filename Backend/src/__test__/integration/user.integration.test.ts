@@ -3,6 +3,7 @@ import request from "supertest";
 import type { Express } from "express";
 import { clearTestDb, startTestDb, stopTestDb } from "../testdb";
 import { buildTestApp } from "../testApp";
+
 const VALID_USER = {
   userName: "bipin_test",
   name: "Bipin Test",
@@ -12,9 +13,9 @@ const VALID_USER = {
 
 let app: Express;
 
+const SIGNUP_PATH = "/api/v1/auth/register";
 const LOGIN_PATH = "/api/v1/auth/login";
 const GET_USER_PATH = "/api/v1/user";
-const SIGNUP_PATH = "/api/v1/auth/register";
 const UPDATE_USER_PATH = "/api/v1/user";
 
 beforeAll(async () => {
