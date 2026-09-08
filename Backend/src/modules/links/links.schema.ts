@@ -4,23 +4,32 @@ import {
   createUpdateSchema,
 } from "drizzle-zod";
 import { links } from "@/db/schema.ts";
-import type z from "zod";
+import z from "zod";
 
-export const createLinkSchema = createInsertSchema(links)
+export const createLinkSchema = createInsertSchema(links, {
+  expiresAt: (_schema) => z.coerce.date(),
+})
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .refine(
-    (data) => data.expiresAt === undefined || data.expiresAt > new Date(),
+    (data) => {
+      if (data.expiresAt != null) {
+        return data.expiresAt.getTime() > Date.now();
+      }
+      return true;
+    },
     {
       message: "expiresAt must be in the future",
       path: ["expiresAt"],
     },
   )
   .openapi("CreateLink");
+
 export const publicLinkSchema = createSelectSchema(links)
   .omit({ userId: true })
   .openapi("SelectLink");
+
 export const updateLinkSchema = createUpdateSchema(links)
-  .pick({ shortCode: true, originalUrl: true, title: true, isCustomCode: true })
+  .pick({ shortCode: true, originalUrl: true, title: true })
   .partial()
   .openapi("UpdateLink");
 

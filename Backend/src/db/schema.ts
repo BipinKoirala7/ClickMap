@@ -54,7 +54,6 @@ export const links = p.pgTable("links", {
     .references(() => users.id)
     .notNull(),
   title: p.varchar().notNull(),
-  isCustomCode: p.boolean().notNull(),
   isActive: p.boolean().notNull().default(true),
   expiresAt: p
     .timestamp()
