@@ -8,6 +8,7 @@ import { linkRepository } from "@/modules/links/links.repository";
 import {
   createLinkSchema,
   type CreateLinkDto,
+  type PublicLinkDto,
 } from "@/modules/links/links.schema";
 import { linkService } from "@/modules/links/links.service";
 import { userService } from "@/modules/user/user.service";
@@ -15,7 +16,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/modules/links/links.repository.ts");
 vi.mock("@/modules/user/user.service.ts");
-vi.mock("@/modules/links/links.schema.ts");
 
 const valid_link: CreateLinkDto = {
   shortCode: "abc123",
@@ -36,14 +36,12 @@ describe("Create link", () => {
       id: userId,
       name: "Test User",
     } as User);
-    vi.mocked(createLinkSchema.parse).mockReturnValue(valid_link);
 
     // Act
     await linkService.createLink(userId, valid_link);
 
     // Assert
     expect(userService.getById).toHaveBeenCalledWith(userId);
-    expect(createLinkSchema.parse).toHaveBeenCalledWith(valid_link);
     expect(linkRepository.createLink).toHaveBeenCalledWith({
       userId,
       ...valid_link,
@@ -55,7 +53,6 @@ describe("Create link", () => {
       AuthenticationError,
     );
     expect(userService.getById).not.toHaveBeenCalled();
-    expect(createLinkSchema.parse).not.toHaveBeenCalled();
     expect(linkRepository.createLink).not.toHaveBeenCalled();
   });
 
@@ -64,7 +61,6 @@ describe("Create link", () => {
       AuthenticationError,
     );
     expect(userService.getById).not.toHaveBeenCalled();
-    expect(createLinkSchema.parse).not.toHaveBeenCalled();
     expect(linkRepository.createLink).not.toHaveBeenCalled();
   });
 
@@ -74,23 +70,18 @@ describe("Create link", () => {
     await expect(linkService.createLink(userId, valid_link)).rejects.toThrow(
       UserNotFoundError,
     );
-    expect(createLinkSchema.parse).not.toHaveBeenCalled();
     expect(linkRepository.createLink).not.toHaveBeenCalled();
   });
 
   it("should propagate an error when link validation fails", async () => {
-    const error = new Error("Invalid link data");
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
     } as User);
-    vi.mocked(createLinkSchema.parse).mockImplementation(() => {
-      throw error;
-    });
 
-    await expect(linkService.createLink(userId, valid_link)).rejects.toThrow(
-      "Invalid link data",
-    );
+    await expect(
+      linkService.createLink(userId, {} as PublicLinkDto),
+    ).rejects.toThrow();
     expect(linkRepository.createLink).not.toHaveBeenCalled();
   });
 
@@ -100,7 +91,6 @@ describe("Create link", () => {
       id: userId,
       name: "Test User",
     } as User);
-    vi.mocked(createLinkSchema.parse).mockReturnValue(valid_link);
     vi.mocked(linkRepository.createLink).mockRejectedValue(error);
 
     await expect(linkService.createLink(userId, valid_link)).rejects.toThrow(
@@ -116,7 +106,28 @@ describe("Create link", () => {
 describe("Get user links", () => {
   it("should successfully return a user's links", async () => {
     // Arrange
-    const links = [{ id: "link1" }, { id: "link2" }];
+    const links: PublicLinkDto[] = [
+      {
+        id: "link123",
+        originalUrl: "https://example.com",
+        shortCode: "abc123",
+        title: "Example Link",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        expiresAt: new Date(Date.now() + 100000),
+      },
+      {
+        id: "link456",
+        originalUrl: "https://example.org",
+        shortCode: "def456",
+        title: "Another Link",
+        isActive: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        expiresAt: new Date(Date.now() + 200000),
+      },
+    ];
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
@@ -184,7 +195,17 @@ describe("Get link info", () => {
 
   it("should successfully return link info", async () => {
     // Arrange
-    const link = { id: linkId, userId, originalUrl: "https://example.com" };
+    const link: PublicLinkDto = {
+      id: linkId,
+      originalUrl: "https://example.com",
+      shortCode: "abc123",
+      title: "Example Link",
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      expiresAt: new Date(Date.now() + 100000),
+    };
+
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
