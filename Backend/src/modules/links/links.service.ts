@@ -6,9 +6,11 @@ import {
 } from "@/errors/Errors.ts";
 import {
   createLinkSchema,
+  publicLinkSchema,
   updateLinkSchema,
   type CreateLinkDto,
   type NewLink,
+  type PublicLinkDto,
   type UpdateLinkDto,
 } from "./links.schema.ts";
 import { linkRepository } from "@/modules/links/links.repository.ts";
@@ -33,7 +35,16 @@ async function createLink(userId: string | undefined, dto: CreateLinkDto) {
 async function getUserLinks(userId: string | undefined) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
-  return await linkRepository.getUserLinks(user.id);
+  const links = await linkRepository.getUserLinks(user.id);
+
+  console.log(links);
+
+  let publicLinks: PublicLinkDto[] = [];
+  for (const link of links) {
+    publicLinks.push(publicLinkSchema.parse(link));
+  }
+
+  return publicLinks;
 }
 
 async function getLinkInfo(linkId: string, userId: string | undefined) {
@@ -42,7 +53,7 @@ async function getLinkInfo(linkId: string, userId: string | undefined) {
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
-  return link;
+  return publicLinkSchema.parse(link);
 }
 
 async function updateLink(
