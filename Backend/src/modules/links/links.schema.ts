@@ -7,8 +7,10 @@ import { links } from "@/db/schema.ts";
 import z from "zod";
 
 export const createLinkSchema = createInsertSchema(links, {
-  expiresAt: (_schema) => z.coerce.date().optional(),
+  shortCode: (_schema) => z.string().min(1).nonempty(),
   originalUrl: (_schema) => z.url().nonempty(),
+  isActive: (_schema) => z.boolean(),
+  expiresAt: (_schema) => z.coerce.date().optional(),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .refine(
@@ -31,7 +33,7 @@ export const publicLinkSchema = createSelectSchema(links)
 
 export const updateLinkSchema = createUpdateSchema(links, {
   originalUrl: (_schema) => z.url().nonempty(),
-  shortCode: (_schema) => z.string().nonempty(),
+  shortCode: (_schema) => z.string().min(1).nonempty(),
   title: (_schema) => z.string(),
   expiresAt: (_schema) => z.coerce.date(),
 })

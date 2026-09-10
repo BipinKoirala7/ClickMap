@@ -4,13 +4,21 @@ import { z } from "zod";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const registerUserSchema = createInsertSchema(users, {
-  email: z.email("Email is invalid"),
+  email: z.email("Email is invalid").nonempty("Email is required"),
   password: z
     .string("Password must be a string")
     .min(8, "Password must be at least 8 characters long")
     .regex(/[A-Z]/, "Must contain an uppercase letter")
     .regex(/[a-z]/, "Must contain a lowercase letter")
     .regex(/[0-9]/, "Must contain a number"),
+  name: z
+    .string("Name must be a string")
+    .min(1, "Name must be at least 1 character long")
+    .nonempty("Name must be at least 1 character long"),
+  userName: z
+    .string("Username must be a string")
+    .min(1, "Username must be at least 1 character long")
+    .nonempty("Username must be at least 1 character long"),
 })
   .pick({
     email: true,
@@ -32,7 +40,14 @@ export const loginUserSchema = createSelectSchema(users, {
   })
   .openapi("LoginUser");
 
-export const activeRefreshTokenSchema = createSelectSchema(activeRefreshTokens)
+export const activeRefreshTokenSchema = createSelectSchema(
+  activeRefreshTokens,
+  {
+    userId: z.string().min(1).nonempty(),
+    refreshToken: z.string().min(1).nonempty(),
+    expiresAt: z.date(),
+  },
+)
   .pick({
     userId: true,
     refreshToken: true,
