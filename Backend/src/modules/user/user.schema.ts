@@ -9,7 +9,15 @@ export const publicUserSchema = createSelectSchema(users)
   })
   .openapi("User");
 
-export const updateUserSchema = createUpdateSchema(users)
+export const updateUserSchema = createUpdateSchema(users, {
+  name: (_schema) => z.string().min(1).nonempty(),
+  email: (_schema) => z.email("Email is invalid").nonempty("Email is required"),
+  userName: (_schema) =>
+    z
+      .string("Username must be a string")
+      .min(1, "Username must be at least 1 character long")
+      .nonempty("Username must be at least 1 character long"),
+})
   .pick({
     name: true,
     userName: true,
