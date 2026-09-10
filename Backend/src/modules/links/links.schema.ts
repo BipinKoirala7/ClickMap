@@ -9,7 +9,7 @@ import z from "zod";
 export const createLinkSchema = createInsertSchema(links, {
   shortCode: (_schema) => z.string().min(1).nonempty(),
   originalUrl: (_schema) => z.url().nonempty(),
-  isActive: (_schema) => z.boolean(),
+  isActive: (_schema) => z.boolean().optional(),
   expiresAt: (_schema) => z.coerce.date().optional(),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
