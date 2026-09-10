@@ -29,9 +29,25 @@ export const publicLinkSchema = createSelectSchema(links)
   .omit({ userId: true })
   .openapi("SelectLink");
 
-export const updateLinkSchema = createUpdateSchema(links)
-  .pick({ shortCode: true, originalUrl: true, title: true })
-  .partial()
+export const updateLinkSchema = createUpdateSchema(links, {
+  originalUrl: (_schema) => z.url().nonempty(),
+  shortCode: (_schema) => z.string().nonempty(),
+  title: (_schema) => z.string(),
+  expiresAt: (_schema) => z.coerce.date(),
+})
+  .pick({ shortCode: true, originalUrl: true, title: true, expiresAt: true })
+  .refine(
+    (data) => {
+      if (data.expiresAt != null) {
+        return data.expiresAt.getTime() > Date.now();
+      }
+      return true;
+    },
+    {
+      message: "expiresAt must be in the future",
+      path: ["expiresAt"],
+    },
+  )
   .openapi("UpdateLink");
 
 export type CreateLinkDto = z.infer<typeof createLinkSchema>;
