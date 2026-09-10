@@ -50,6 +50,9 @@ export const updateLinkSchema = createUpdateSchema(links, {
       path: ["expiresAt"],
     },
   )
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update",
+  })
   .openapi("UpdateLink");
 
 export type CreateLinkDto = z.infer<typeof createLinkSchema>;

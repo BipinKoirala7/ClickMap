@@ -7,6 +7,7 @@ import { buildTestApp } from "../testApp";
 import type {
   CreateLinkDto,
   PublicLinkDto,
+  UpdateLinkDto,
 } from "@/modules/links/links.schema";
 
 let server: Express;
@@ -681,6 +682,456 @@ describe("Link Retrieval Integration Tests", () => {
         .set("Cookie", setCookie);
 
       expect([400, 404, 500]).toContain(res.status);
+    });
+  });
+});
+
+const UPDATE_LINK_PATH = (id: string) => `/api/v1/link/${id}`;
+const ACTIVATE_LINK_PATH = (id: string) => `/api/v1/link/${id}/activate`;
+const DEACTIVATE_LINK_PATH = (id: string) => `/api/v1/link/${id}/deactivate`;
+
+// Every field in updateLinkSchema is optional (createUpdateSchema + .pick),
+// so a single-field partial payload is a valid update on its own.
+const VALID_UPDATE_PAYLOAD: Partial<UpdateLinkDto> = {
+  title: "Updated Title",
+};
+
+describe("Link Update / Activation / Deactivation Integration Tests", () => {
+  // -----------------------------------------------------------------------
+  // Auth failures are handled entirely by the shared `authenticate`
+  // middleware ahead of all three routes, so table-test across them the
+  // same way the retrieval suite does. PUT needs a body; PATCH doesn't.
+  // -----------------------------------------------------------------------
+  describe.each([
+    {
+      name: "PUT /api/v1/link/:id",
+      makeRequest: () =>
+        request(server)
+          .put(UPDATE_LINK_PATH(NONEXISTENT_ID))
+          .send(VALID_UPDATE_PAYLOAD),
+    },
+    {
+      name: "PATCH /api/v1/link/:id/activate",
+      makeRequest: () =>
+        request(server).patch(ACTIVATE_LINK_PATH(NONEXISTENT_ID)),
+    },
+    {
+      name: "PATCH /api/v1/link/:id/deactivate",
+      makeRequest: () =>
+        request(server).patch(DEACTIVATE_LINK_PATH(NONEXISTENT_ID)),
+    },
+  ])("$name — auth failures", ({ makeRequest }) => {
+    it("returns 401 when no cookie is sent at all", async () => {
+      const res = await makeRequest();
+      expect(res.status).toBe(401);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/not logged in/i);
+    });
+
+    it("returns 401 when accessToken cookie is present but empty", async () => {
+      const res = await makeRequest().set("Cookie", ["accessToken="]);
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 401 when only an unrelated cookie is present", async () => {
+      const res = await makeRequest().set("Cookie", ["someOtherCookie=value"]);
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 401 with a non-JWT string (JWTInvalid)", async () => {
+      const res = await makeRequest().set("Cookie", [
+        "accessToken=this-is-not-a-jwt",
+      ]);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/log in again/i);
+    });
+
+    it("returns 401 with a tampered signature (JWSSignatureVerificationFailed)", async () => {
+      const validToken = await buildRawAccessToken({});
+      const tampered = tamperSignature(validToken);
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${tampered}`,
+      ]);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/log in again/i);
+    });
+
+    it("returns 401 with an expired token (JWTExpired)", async () => {
+      const expiredToken = await buildRawAccessToken({
+        sub: "some-user-id",
+        expiresInSeconds: -60,
+      });
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${expiredToken}`,
+      ]);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/session expired/i);
+    });
+
+    it("returns 401 when a refresh token is sent as the access token (wrong tokenType)", async () => {
+      await registerTestUser();
+      const refreshToken = await jwtService.createRefreshToken("user123");
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${refreshToken}`,
+      ]);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/not logged in/i);
+    });
+
+    it("returns 401 when the token has no subject claim", async () => {
+      const noSubToken = await buildRawAccessToken({
+        sub: null as unknown as string,
+      });
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${noSubToken}`,
+      ]);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toMatch(/not logged in/i);
+    });
+
+    it("returns 401 when the subject is an empty string", async () => {
+      const emptySubToken = await buildRawAccessToken({ sub: "" });
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${emptySubToken}`,
+      ]);
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 404 when the subject is a well-formed but nonexistent user id", async () => {
+      const forgedToken = await buildRawAccessToken({ sub: NONEXISTENT_ID });
+      const res = await makeRequest().set("Cookie", [
+        `accessToken=${forgedToken}`,
+      ]);
+      // updateLink/activateLink/deactivateLink all call userService.getById
+      // before touching the link, so a forged-but-nonexistent subject
+      // surfaces as UserNotFoundError (404).
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/user not found/i);
+    });
+
+    // NOTE: as in the other integration suites, JWTClaimValidationFailed is
+    // unreachable — verifyAccessToken calls jwtVerify with no issuer/
+    // audience options.
+  });
+
+  // -----------------------------------------------------------------------
+  // PUT /link/:id — updateLinkController / linkService.updateLink
+  // -----------------------------------------------------------------------
+  describe("PUT /link/:id", () => {
+    it("updates the link and persists the change", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      const res = await request(server)
+        .put(UPDATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie)
+        .send(VALID_UPDATE_PAYLOAD);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toBe("OK");
+      // Controller always responds with data: null, so verify persistence
+      // via a follow-up read instead of trusting the response body.
+      expect(res.body.data).toBeNull();
+
+      const after = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", setCookie);
+
+      expect(after.body.data).toMatchObject({
+        title: VALID_UPDATE_PAYLOAD.title,
+      });
+    });
+
+    it("allows updating multiple fields at once", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      const payload: Partial<UpdateLinkDto> = {
+        title: "New Title",
+        originalUrl: "https://example.com/new-destination",
+      };
+
+      const res = await request(server)
+        .put(UPDATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie)
+        .send(payload);
+
+      expect(res.status).toBe(200);
+
+      const after = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", setCookie);
+
+      expect(after.body.data).toMatchObject(payload);
+    });
+
+    it("returns 404 when the link does not exist", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+
+      const res = await request(server)
+        .put(UPDATE_LINK_PATH(NONEXISTENT_ID))
+        .set("Cookie", setCookie)
+        .send(VALID_UPDATE_PAYLOAD);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
+    });
+
+    it("returns 404 when the link exists but belongs to a different user", async () => {
+      await registerTestUser();
+      const { setCookie: ownerCookies } = await loginAndGetCookies();
+      const created = await createLinkAs(ownerCookies);
+
+      await request(server).post("/api/v1/auth/register").send(SECOND_USER);
+      const { setCookie: otherCookies } = await loginAndGetCookies(SECOND_USER);
+
+      const res = await request(server)
+        .put(UPDATE_LINK_PATH(created.id))
+        .set("Cookie", otherCookies)
+        .send(VALID_UPDATE_PAYLOAD);
+
+      // Ownership check via getLink(linkId, userId) — same-shape as GET
+      // /:id, so a foreign link 404s rather than leaking existence.
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
+
+      // and confirm it truly wasn't mutated
+      const stillOriginal = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", ownerCookies);
+      expect(stillOriginal.body.data.title).toBe(VALID_LINK_PAYLOAD.title);
+    });
+
+    describe("when the payload fails schema validation", () => {
+      it("returns 422 when originalUrl is not a valid URL", async () => {
+        await registerTestUser();
+        const { setCookie } = await loginAndGetCookies();
+        const created = await createLinkAs(setCookie);
+
+        const res = await request(server)
+          .put(UPDATE_LINK_PATH(created.id))
+          .set("Cookie", setCookie)
+          .send({ originalUrl: "not-a-url" });
+
+        expect(res.status).toBe(422);
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toMatch(/valid information/i);
+      });
+
+      it("returns 422 when shortCode is an empty string", async () => {
+        await registerTestUser();
+        const { setCookie } = await loginAndGetCookies();
+        const created = await createLinkAs(setCookie);
+
+        const res = await request(server)
+          .put(UPDATE_LINK_PATH(created.id))
+          .set("Cookie", setCookie)
+          .send({ shortCode: "" });
+
+        expect(res.status).toBe(422);
+      });
+
+      it("returns 422 when expiresAt is in the past", async () => {
+        await registerTestUser();
+        const { setCookie } = await loginAndGetCookies();
+        const created = await createLinkAs(setCookie);
+
+        const res = await request(server)
+          .put(UPDATE_LINK_PATH(created.id))
+          .set("Cookie", setCookie)
+          .send({ expiresAt: new Date(Date.now() - 60_000).toISOString() });
+
+        expect(res.status).toBe(422);
+      });
+
+      it("returns 500 for an empty payload (Drizzle rejects a no-op update)", async () => {
+        // updateLinkSchema itself has no required fields and parses {} fine —
+        // but linkRepository.updateLink then calls Drizzle's .set({}), which
+        // throws "No values to set" (mapUpdateSet) rather than treating it as
+        // a no-op. That's a plain Error, not an AppError/ZodError, so
+        // errorHandler falls through to the generic 500 branch.
+        //
+        // This is arguably a bug — an empty update payload probably *should*
+        // either no-op with 200 or be rejected at the schema level with 422 —
+        // but 500 is the current, real behavior. Tightening this likely means
+        // adding a `.refine(data => Object.keys(data).length > 0, ...)` to
+        // updateLinkSchema so it 422s instead, same class of gap as the
+        // duplicate-shortCode/invalid-uuid cases noted elsewhere in this file.
+        await registerTestUser();
+        const { setCookie } = await loginAndGetCookies();
+        const created = await createLinkAs(setCookie);
+
+        const res = await request(server)
+          .put(UPDATE_LINK_PATH(created.id))
+          .set("Cookie", setCookie)
+          .send({});
+
+        expect(res.status).toBe(422);
+      });
+    });
+
+    // ---------------------------------------------------------------------
+    // "Link ID is required" is unreachable via HTTP for the same reason
+    // noted in the retrieval suite: /link/:id won't match a request with
+    // no id segment at all.
+    // ---------------------------------------------------------------------
+  });
+
+  // -----------------------------------------------------------------------
+  // PATCH /link/:id/deactivate — deactivateLinkController / linkService.deactivateLink
+  // -----------------------------------------------------------------------
+  describe("PATCH /link/:id/deactivate", () => {
+    it("deactivates an active link", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      const res = await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toBe("OK");
+      expect(res.body.data).toBeNull();
+
+      const after = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", setCookie);
+      expect(after.body.data.isActive).toBe(false);
+    });
+
+    it("returns 400 when the link is already deactivated", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      const res = await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/already deactivated/i);
+    });
+
+    it("returns 404 when the link does not exist", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+
+      const res = await request(server)
+        .patch(DEACTIVATE_LINK_PATH(NONEXISTENT_ID))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
+    });
+
+    it("returns 404 when the link exists but belongs to a different user", async () => {
+      await registerTestUser();
+      const { setCookie: ownerCookies } = await loginAndGetCookies();
+      const created = await createLinkAs(ownerCookies);
+
+      await request(server).post("/api/v1/auth/register").send(SECOND_USER);
+      const { setCookie: otherCookies } = await loginAndGetCookies(SECOND_USER);
+
+      const res = await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", otherCookies);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
+
+      const stillActive = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", ownerCookies);
+      expect(stillActive.body.data.isActive).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // PATCH /link/:id/activate — activateLinkController / linkService.activateLink
+  // -----------------------------------------------------------------------
+  describe("PATCH /link/:id/activate", () => {
+    it("activates a deactivated link", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      const res = await request(server)
+        .patch(ACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.message).toBe("OK");
+      expect(res.body.data).toBeNull();
+
+      const after = await request(server)
+        .get(getLinkByIdPath(created.id))
+        .set("Cookie", setCookie);
+      expect(after.body.data.isActive).toBe(true);
+    });
+
+    it("returns 400 when the link is already active", async () => {
+      // Links are assumed active by default on creation (matches the
+      // VALID_LINK_PAYLOAD shape used elsewhere in this file, which omits
+      // isActive and relies on the DB default). If the default is ever
+      // flipped to false, this test needs an explicit isActive: true on
+      // create instead.
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+      const created = await createLinkAs(setCookie);
+
+      const res = await request(server)
+        .patch(ACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/already active/i);
+    });
+
+    it("returns 404 when the link does not exist", async () => {
+      await registerTestUser();
+      const { setCookie } = await loginAndGetCookies();
+
+      const res = await request(server)
+        .patch(ACTIVATE_LINK_PATH(NONEXISTENT_ID))
+        .set("Cookie", setCookie);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
+    });
+
+    it("returns 404 when the link exists but belongs to a different user", async () => {
+      await registerTestUser();
+      const { setCookie: ownerCookies } = await loginAndGetCookies();
+      const created = await createLinkAs(ownerCookies);
+
+      await request(server)
+        .patch(DEACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", ownerCookies);
+
+      await request(server).post("/api/v1/auth/register").send(SECOND_USER);
+      const { setCookie: otherCookies } = await loginAndGetCookies(SECOND_USER);
+
+      const res = await request(server)
+        .patch(ACTIVATE_LINK_PATH(created.id))
+        .set("Cookie", otherCookies);
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toMatch(/link not found/i);
     });
   });
 });
