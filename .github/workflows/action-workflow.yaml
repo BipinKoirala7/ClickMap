@@ -1,3 +1,10 @@
+# TODO
+# 1. After adding restriction on pushing directly to main, we should avoid running the workflow on main branch.
+#    We can do this by adding a "!main" condition to the branches list.
+# 2. After we setup a deployment path from both frontend and backend, we should add workflows to deploy the
+#    application to the server after there is a push to the main branch. This will be done by adding a new workflow file for deployment.
+#
+
 name: test and deploy
 
 on:
