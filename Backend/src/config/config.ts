@@ -8,7 +8,7 @@ const envSchema = z.object({
   PORT: z.string().nonempty().default("3000"),
 
   // Database configuration
-  DATABASE_URL: z.string().nonempty(),
+  DATABASE_URL: z.string().nonempty().default(""),
 
   // JWT configuration
   JWT_SECRET: z.string().nonempty(),
