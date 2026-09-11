@@ -45,10 +45,10 @@ jobs:
 
       - name: Run tests
         env:
-          NODE_ENV: ${{ vars.NODE_ENV }}
-          MORGAN_PROFILE: ${{ vars.MORGAN_PROFILE }}
           PORT: ${{ vars.PORT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ACCESS_TOKEN_EXPIRATION: ${{ vars.ACCESS_TOKEN_EXPIRATION }}
           REFRESH_TOKEN_EXPIRATION: ${{ vars.REFRESH_TOKEN_EXPIRATION }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          MORGAN_PROFILE: ${{ vars.MORGAN_PROFILE }}
         run: npm test

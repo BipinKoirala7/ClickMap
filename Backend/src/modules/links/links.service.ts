@@ -39,7 +39,7 @@ async function getUserLinks(userId: string | undefined) {
 
   console.log(links);
 
-  let publicLinks: PublicLinkDto[] = [];
+  const publicLinks: PublicLinkDto[] = [];
   for (const link of links) {
     publicLinks.push(publicLinkSchema.parse(link));
   }

@@ -1,6 +1,6 @@
 import {
   type ActiveRefreshToken,
-  type NewActiveRefreshToken,
+  type LoginUserDto,
   type RegisterUserDto,
   type User,
 } from "@/modules/auth/auth.schema";
@@ -23,7 +23,6 @@ import { config } from "@/config/config";
 import type { Request, Response } from "express";
 import { authRepository } from "@/modules/auth/auth.repository";
 import { password } from "@/lib/password";
-import AppError from "@/errors/AppError";
 
 vi.mock("@/lib/password");
 vi.mock("@/modules/user/user.service");
@@ -204,7 +203,7 @@ describe("Login User", () => {
 
   it("throws a validation error for malformed login data", async () => {
     await expect(
-      authService.loginUser({ email: "not-an-email" }, res),
+      authService.loginUser({ email: "not-an-email" } as LoginUserDto, res),
     ).rejects.toThrow();
 
     expect(userService.getByEmail).not.toHaveBeenCalled();
