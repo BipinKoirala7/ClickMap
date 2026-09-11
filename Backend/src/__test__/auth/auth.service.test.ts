@@ -19,7 +19,7 @@ import {
   UserAlreadyActiveError,
   UserAlreadyDeactivatedError,
 } from "@/errors/Errors";
-import { config } from "@/config";
+import { config } from "@/config/config";
 import type { Request, Response } from "express";
 import { authRepository } from "@/modules/auth/auth.repository";
 import { password } from "@/lib/password";

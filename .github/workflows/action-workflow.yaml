@@ -1,0 +1,54 @@
+name: test and deploy
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "Backend/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Backend/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-backend-app:
+    name: test-app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            Backend
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: ./Backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test link
+        run: npm run lint
+
+      - name: Run tests
+        env:
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          MORGAN_PROFILE: ${{ vars.MORGAN_PROFILE }}
+          PORT: ${{ vars.PORT }}
+          ACCESS_TOKEN_EXPIRATION: ${{ vars.ACCESS_TOKEN_EXPIRATION }}
+          REFRESH_TOKEN_EXPIRATION: ${{ vars.REFRESH_TOKEN_EXPIRATION }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: npm test

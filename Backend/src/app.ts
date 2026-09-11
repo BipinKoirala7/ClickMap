@@ -5,7 +5,7 @@ import cors from "cors";
 
 import swaggerUi from "swagger-ui-express";
 import { generateOpenApiDoc } from "./openapi/generate.ts";
-import { config } from "./config/index.ts";
+import { config } from "./config/config.ts";
 import { errorHandler } from "./errors/errorHandler.ts";
 import RestApiResponse from "./types/RestApiResponse.ts";
 import morgan from "morgan";

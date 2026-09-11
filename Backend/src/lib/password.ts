@@ -1,4 +1,4 @@
-import { config } from "@/config";
+import { config } from "@/config/config";
 import bcrypt from "bcryptjs";
 
 async function hashPassword(rawPassword: string): Promise<string> {
