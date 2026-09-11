@@ -1,4 +1,4 @@
-import { config } from "@/config/index.ts";
+import { config } from "@/config/config.ts";
 import { AuthenticationError } from "@/errors/Errors.ts";
 import * as jose from "jose";
 import type { User } from "./auth.schema.ts";

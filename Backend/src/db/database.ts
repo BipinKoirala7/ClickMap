@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { config } from "../config/index.ts";
+import { config } from "../config/config.ts";
 import { activeRefreshTokens, clickEvents, links, users } from "./schema.ts";
 
 const connection = new Pool({

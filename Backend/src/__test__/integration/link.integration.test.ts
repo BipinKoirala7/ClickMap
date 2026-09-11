@@ -32,12 +32,12 @@ const VALID_LINK_PAYLOAD: CreateLinkDto = {
 const ACCESS_TOKEN_TYPE = "ACCESS_TOKEN";
 
 let jwtService: (typeof import("@/modules/auth/jwt.service"))["jwtService"];
-let config: (typeof import("@/config"))["config"];
+let config: (typeof import("@/config/config"))["config"];
 
 beforeAll(async () => {
   await startTestDb();
   ({ jwtService } = await import("@/modules/auth/jwt.service"));
-  ({ config } = await import("@/config"));
+  ({ config } = await import("@/config/config"));
   server = await buildTestApp();
 }, 60_000);
 

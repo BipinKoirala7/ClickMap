@@ -19,7 +19,7 @@ import { cookiesService } from "./cookies.service.ts";
 import { authRepository } from "./auth.repository.ts";
 import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
-import { config } from "@/config/index.ts";
+import { config } from "@/config/config.ts";
 import { password } from "@/lib/password.ts";
 
 async function registerUser(userData: any) {

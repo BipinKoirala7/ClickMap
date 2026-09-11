@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { config } from "@/config/index.ts";
+import { config } from "@/config/config";
 
 function getAccessCookiesFromRequest(req: Request): string | null {
   return req.cookies["accessToken"] ?? null;
