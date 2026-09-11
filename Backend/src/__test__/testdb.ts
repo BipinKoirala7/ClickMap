@@ -48,6 +48,8 @@ export async function startTestDb() {
 }
 
 export async function stopTestDb() {
+  const { closeDb } = await import("@/db/database.ts");
+  await closeDb();
   await pool?.end();
   await container?.stop();
 }

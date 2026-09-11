@@ -14,3 +14,7 @@ connection.addListener("connect", () => {
 export const db = drizzle(connection, {
   schema: { users, activeRefreshTokens, links, clickEvents },
 });
+
+export async function closeDb() {
+  await connection.end();
+}
