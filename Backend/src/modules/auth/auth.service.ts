@@ -12,6 +12,8 @@ import {
   loginUserSchema,
   registerUserSchema,
   type ActiveRefreshTokenDto,
+  type LoginUserDto,
+  type RegisterUserDto,
   type User,
 } from "@/modules/auth/auth.schema.ts";
 import type { Request, Response } from "express";
@@ -22,7 +24,7 @@ import { logger } from "@/lib/logger.ts";
 import { config } from "@/config/config.ts";
 import { password } from "@/lib/password.ts";
 
-async function registerUser(userData: any) {
+async function registerUser(userData: RegisterUserDto) {
   const user = registerUserSchema.parse(userData);
 
   logger.info({ userName: user.userName }, "Registering new user");
@@ -34,7 +36,7 @@ async function registerUser(userData: any) {
   logger.info({ userId: createdUserId }, "User registered successfully");
 }
 
-async function loginUser(loginData: any, res: Response) {
+async function loginUser(loginData: LoginUserDto, res: Response) {
   const loginInfo = loginUserSchema.parse(loginData);
 
   logger.debug("Login attempt");

@@ -9,7 +9,6 @@ import {
   JWTExpired,
   JWTInvalid,
 } from "jose/errors";
-import { UserNotFoundError } from "./Errors.ts";
 
 // Jose needs to be distincted with different messages
 export function errorHandler(

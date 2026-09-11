@@ -1,11 +1,10 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import app from "@/app";
 import { userService } from "@/modules/user/user.service";
 import type { PublicUserDto } from "@/modules/user/user.schema";
 import { jwtService } from "@/modules/auth/jwt.service";
 import type { User } from "@/modules/auth/auth.schema";
-import type TestAgent from "supertest/lib/agent";
 import { UserNotFoundError } from "@/errors/Errors";
 import { ZodError } from "zod";
 import { cookiesService } from "@/modules/auth/cookies.service";
@@ -33,12 +32,6 @@ vi.mock("@/modules/auth/cookies.service.ts");
 vi.mock("@/modules/user/user.repository.ts");
 
 const userServiceMock = vi.mocked(userService);
-
-let server: TestAgent;
-
-beforeAll(() => {
-  server = request(app);
-});
 
 const GET_USER_URL = "/api/v1/user/";
 
