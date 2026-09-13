@@ -7,7 +7,10 @@ import { links } from "@/db/schema.ts";
 import z from "zod";
 
 export const createLinkSchema = createInsertSchema(links, {
-  shortCode: (schema) => schema.trim(),
+  shortCode: (schema) =>
+    schema
+      .trim()
+      .check(z.minLength(1, "Short code must be at least 1 character long")),
   originalUrl: (schema) =>
     schema
       .trim()
