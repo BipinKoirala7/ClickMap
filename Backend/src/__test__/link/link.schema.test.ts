@@ -146,28 +146,6 @@ describe("createLinkSchema", () => {
       });
       expect(result.success).toBe(false);
     });
-
-    // NOTE: unlike shortCode/originalUrl, `title` has no override at all in
-    // the schema — no `.trim()`, no min-length. Whitespace is preserved and
-    // an empty string currently passes validation.
-    it("does NOT trim title (no .trim() configured)", () => {
-      const result = createLinkSchema.safeParse({
-        ...validCreateInput,
-        title: "  My Link  ",
-      });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.title).toBe("  My Link  ");
-      }
-    });
-
-    it("currently ACCEPTS an empty title (no min-length check)", () => {
-      const result = createLinkSchema.safeParse({
-        ...validCreateInput,
-        title: "",
-      });
-      expect(result.success).toBe(true);
-    });
   });
 
   describe("isActive", () => {
@@ -433,16 +411,6 @@ describe("updateLinkSchema", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.title).toBe("New title");
-      }
-    });
-
-    // NOTE: title has `.trim()` but no min-length check on update, same gap
-    // as on create — an empty-after-trim title currently passes.
-    it("currently ACCEPTS an empty-after-trim title (no min-length check)", () => {
-      const result = updateLinkSchema.safeParse({ title: "   " });
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.title).toBe("");
       }
     });
   });

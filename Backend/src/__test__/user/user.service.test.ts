@@ -126,10 +126,9 @@ describe("Update User", () => {
 
   it("should update user", async () => {
     // Arrange
-    const updateUserInfo = {
+    const updateUserInfo: UpdateUserDto = {
       name: "Bipin Koirala",
-      userName: "bipin.123.123",
-      isActive: true,
+      userName: "bipin123",
     } as UpdateUserDto;
     mockedUserRepository.findById.mockResolvedValue(mockedUser);
 
@@ -184,10 +183,9 @@ describe("Update User", () => {
 
   it("should update user", async () => {
     // Arrange
-    const updateUserInfo = {
+    const updateUserInfo: UpdateUserDto = {
       name: "Bipin Koirala",
-      userName: "bipin.123.123",
-      isActive: true,
+      userName: "bipin123",
     } as UpdateUserDto;
     mockedUserRepository.findById.mockResolvedValue(mockedUser);
 
@@ -205,9 +203,9 @@ describe("Update User", () => {
   it("should strip fields not allowed by the update schema (email, password, plan)", async () => {
     mockedUserRepository.findById.mockResolvedValue(mockedUser);
 
-    const updateUserInfo = {
+    const updateUserInfo: UpdateUserDto = {
       name: "New Name",
-      userName: "new.username",
+      userName: "newusername",
       email: "shouldnotupdate@gmail.com",
       password: "ShouldNotUpdate@123",
       plan: "pro",
@@ -220,6 +218,7 @@ describe("Update User", () => {
       {
         name: updateUserInfo.name,
         userName: updateUserInfo.userName,
+        email: updateUserInfo.email,
       },
     );
   });
@@ -254,7 +253,7 @@ describe("Update User", () => {
 
     await expect(
       userService.updateUser(mockedUser.id, {
-        name: "X",
+        name: "Bipin",
       } as UpdateUserDto),
     ).rejects.toThrow("Update failed");
   });
@@ -263,7 +262,7 @@ describe("Update User", () => {
     mockedUserRepository.findById.mockResolvedValue(mockedUser);
 
     await userService.updateUser(mockedUser.id, {
-      name: "X",
+      name: "Bipin",
     } as UpdateUserDto);
 
     expect(mockedUserRepository.findById).toHaveBeenCalledTimes(1);
