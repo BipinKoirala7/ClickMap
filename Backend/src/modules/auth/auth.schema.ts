@@ -5,7 +5,11 @@ import { createInsertSchema } from "drizzle-zod";
 
 export const registerUserSchema = createInsertSchema(users, {
   email: (schema) =>
-    schema.check(z.email("Email is invalid")).openapi("Email").trim().toLowerCase(),
+    schema
+      .trim()
+      .toLowerCase()
+      .check(z.email("Email is invalid"))
+      .openapi("Email"),
   password: z
     .string("Password must be a string")
     .min(8, "Password must be at least 8 characters long")
@@ -15,16 +19,16 @@ export const registerUserSchema = createInsertSchema(users, {
     .regex(/[0-9]/, "Must contain a number"),
   name: (schema) =>
     schema
+      .trim()
       .check(z.minLength(1, "Name must be at least 1 character long"))
-      .openapi("Name")
-      .trim(),
+      .openapi("Name"),
   userName: (schema) =>
     schema
+      .trim()
       .check(z.minLength(1, "Username must be at least 1 character long"))
       .openapi("Username")
       .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores")
-      .max(100, "Username must be less than 100 characters")
-      .trim(),
+      .max(100, "Username must be less than 100 characters"),
 })
   .pick({
     email: true,
@@ -36,8 +40,14 @@ export const registerUserSchema = createInsertSchema(users, {
 
 export const loginUserSchema = z
   .object({
-    email: z.email("Email is invalid").trim().toLowerCase(),
-    password: z.string("Password must be a string").nonempty("Password is required"),
+    email: z
+      .string("Email must be a string")
+      .trim()
+      .toLowerCase()
+      .check(z.email("Email is invalid")),
+    password: z
+      .string("Password must be a string")
+      .nonempty("Password is required"),
   })
   .openapi("LoginUser");
 
@@ -46,16 +56,16 @@ export const activeRefreshTokenSchema = createInsertSchema(
   {
     userId: (schema) =>
       schema
+        .trim()
         .check(z.minLength(1, "User ID must be at least 1 character long"))
-        .openapi("User ID")
-        .trim(),
+        .openapi("User ID"),
     refreshToken: (schema) =>
       schema
+        .trim()
         .check(
           z.minLength(1, "Refresh token must be at least 1 character long"),
         )
-        .openapi("Refresh Token")
-        .trim(),
+        .openapi("Refresh Token"),
     expiresAt: (schema) =>
       schema
         .refine(
