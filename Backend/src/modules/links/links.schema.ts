@@ -7,6 +7,8 @@ import { links } from "@/db/schema.ts";
 import z from "zod";
 
 export const createLinkSchema = createInsertSchema(links, {
+  title: (schema) =>
+    schema.trim().min(1, "Title must be at least 1 character long"),
   shortCode: (schema) =>
     schema
       .trim()
@@ -44,8 +46,10 @@ export const updateLinkSchema = createUpdateSchema(links, {
           .url("Original URL must be a valid URL")
           .min(1, "Original URL must be at least 1 character long"),
       ),
-  shortCode: (schema) => schema.trim().min(1).nonempty(),
-  title: (schema) => schema.trim(),
+  shortCode: (schema) =>
+    schema.trim().min(1, "Short code must be at least 1 character long"),
+  title: (schema) =>
+    schema.trim().min(1, "Title must be at least 1 character long"),
   expiresAt: (schema) =>
     schema
       .optional()

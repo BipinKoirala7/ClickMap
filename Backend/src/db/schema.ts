@@ -47,13 +47,13 @@ export const links = p.pgTable("links", {
     .varchar()
     .primaryKey()
     .$default(() => nanoid()),
-  shortCode: p.varchar().notNull().unique(),
+  shortCode: p.varchar({ length: 100 }).notNull().unique(),
   originalUrl: p.text().notNull(),
   userId: p
     .varchar()
     .references(() => users.id)
     .notNull(),
-  title: p.varchar().notNull(),
+  title: p.varchar({ length: 255 }).notNull(),
   isActive: p.boolean().notNull().default(true),
   expiresAt: p
     .timestamp()

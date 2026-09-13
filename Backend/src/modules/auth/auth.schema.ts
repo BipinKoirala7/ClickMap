@@ -20,7 +20,7 @@ export const registerUserSchema = createInsertSchema(users, {
   name: (schema) =>
     schema
       .trim()
-      .check(z.minLength(1, "Name must be at least 1 character long"))
+      .check(z.minLength(5, "Name must be at least 5 characters long"))
       .openapi("Name"),
   userName: (schema) =>
     schema

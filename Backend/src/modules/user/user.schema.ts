@@ -10,13 +10,20 @@ export const publicUserSchema = createSelectSchema(users)
   .openapi("User");
 
 export const updateUserSchema = createUpdateSchema(users, {
-  name: (_schema) => z.string().min(1).nonempty(),
-  email: (_schema) => z.email("Email is invalid").nonempty("Email is required"),
-  userName: (_schema) =>
-    z
-      .string("Username must be a string")
-      .min(1, "Username must be at least 1 character long")
-      .nonempty("Username must be at least 1 character long"),
+  name: (schema) =>
+    schema
+      .trim()
+      .min(5, "Name must be at least 5 characters long")
+      .max(100, "Name must be at most 100 characters long"),
+  email: (schema) =>
+    schema.trim().toLowerCase().check(z.email("Email is invalid")),
+  userName: (schema) =>
+    schema
+      .trim()
+      .check(z.minLength(1, "Username must be at least 1 character long"))
+      .openapi("Username")
+      .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores")
+      .max(100, "Username must be less than 100 characters"),
 })
   .pick({
     name: true,
