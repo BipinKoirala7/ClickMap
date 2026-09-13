@@ -1,11 +1,11 @@
 import { activeRefreshTokens, users } from "@/db/schema.ts";
 
 import { z } from "zod";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createInsertSchema } from "drizzle-zod";
 
 export const registerUserSchema = createInsertSchema(users, {
   email: (schema) =>
-    schema.check(z.email("Email is invalid")).openapi("Email").trim(),
+    schema.check(z.email("Email is invalid")).openapi("Email").trim().toLowerCase(),
   password: z
     .string("Password must be a string")
     .min(8, "Password must be at least 8 characters long")
@@ -13,17 +13,18 @@ export const registerUserSchema = createInsertSchema(users, {
     .regex(/[A-Z]/, "Must contain an uppercase letter")
     .regex(/[a-z]/, "Must contain a lowercase letter")
     .regex(/[0-9]/, "Must contain a number"),
-  name: z
-    .string("Name must be a string")
-    .nonempty("Name must be at least 1 character long")
-    .max(100, "Name must be less than 100 characters")
-    .trim(),
-  userName: z
-    .string("Username must be a string")
-    .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores")
-    .nonempty("Username must be at least 1 character long")
-    .max(100, "Username must be less than 100 characters")
-    .trim(),
+  name: (schema) =>
+    schema
+      .check(z.minLength(1, "Name must be at least 1 character long"))
+      .openapi("Name")
+      .trim(),
+  userName: (schema) =>
+    schema
+      .check(z.minLength(1, "Username must be at least 1 character long"))
+      .openapi("Username")
+      .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores")
+      .max(100, "Username must be less than 100 characters")
+      .trim(),
 })
   .pick({
     email: true,
@@ -33,32 +34,35 @@ export const registerUserSchema = createInsertSchema(users, {
   })
   .openapi("RegisterUser");
 
-export const loginUserSchema = createSelectSchema(users, {
-  email: (schema) => schema.check(z.email("Email is invalid").trim()),
-  password: z
-    .string("Password must be a string")
-    .nonempty("Password must be at least 1 character long"),
-})
-  .pick({
-    email: true,
-    password: true,
+export const loginUserSchema = z
+  .object({
+    email: z.email("Email is invalid").trim().toLowerCase(),
+    password: z.string("Password must be a string").nonempty("Password is required"),
   })
   .openapi("LoginUser");
 
-export const activeRefreshTokenSchema = createSelectSchema(
+export const activeRefreshTokenSchema = createInsertSchema(
   activeRefreshTokens,
   {
-    userId: z
-      .string("User ID must be a string")
-      .nonempty("User ID must be at least 1 character long"),
-    refreshToken: z
-      .string("Refresh token must be a string")
-      .nonempty("Refresh token must be at least 1 character long"),
-    expiresAt: z
-      .date("Expires at must be a date")
-      .refine((date) => date > new Date(), {
-        message: "expiresAt must be in the future",
-      }),
+    userId: (schema) =>
+      schema
+        .check(z.minLength(1, "User ID must be at least 1 character long"))
+        .openapi("User ID")
+        .trim(),
+    refreshToken: (schema) =>
+      schema
+        .check(
+          z.minLength(1, "Refresh token must be at least 1 character long"),
+        )
+        .openapi("Refresh Token")
+        .trim(),
+    expiresAt: (schema) =>
+      schema
+        .refine(
+          (date) => date > new Date(),
+          "Refresh token must be in the future",
+        )
+        .openapi("Expires At"),
   },
 )
   .pick({
