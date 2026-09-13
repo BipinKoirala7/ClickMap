@@ -28,8 +28,12 @@ export const updateUserSchema = createUpdateSchema(users, {
   .pick({
     name: true,
     userName: true,
+    email: true,
   })
-  .openapi("UpdateUser");
+  .openapi("UpdateUser")
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update",
+  });
 
 export type PublicUserDto = z.infer<typeof publicUserSchema>;
 export type UpdateUserDto = z.infer<typeof updateUserSchema>;
