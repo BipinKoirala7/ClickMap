@@ -29,10 +29,18 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
-            Log in
-          </Button>
-          <Button size="sm">Sign up</Button>
+          <Link
+            href="/login"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Button variant="ghost" size="sm">
+              Log in
+            </Button>
+          </Link>
+          <span className="hidden h-6 w-px bg-border md:inline-block" />
+          <Link href="/signup">
+            <Button size="sm">Sign up</Button>
+          </Link>
         </div>
       </div>
     </header>

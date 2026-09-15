@@ -2,6 +2,7 @@ import { Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type PricingCardPropsT = {
   name: string;
@@ -52,13 +53,15 @@ export default function PricingCard({
             )}
           </div>
 
-          <Button
-            size="lg"
-            variant={highlighted ? "default" : "outline"}
-            className="w-full"
-          >
-            {cta}
-          </Button>
+          <Link href="/signup">
+            <Button
+              size="lg"
+              variant={highlighted ? "default" : "outline"}
+              className="w-full"
+            >
+              {cta}
+            </Button>
+          </Link>
 
           <ul className="flex flex-col gap-3">
             {features.map((feature) => (

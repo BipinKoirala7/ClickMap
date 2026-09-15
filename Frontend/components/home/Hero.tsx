@@ -1,6 +1,7 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HeroDemoCard from "./HeroDemoCard";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -24,13 +25,9 @@ export default function Hero() {
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Button size="lg">
-            Start free
-            <ArrowRight />
-          </Button>
-          <Button variant="outline" size="lg">
-            View live demo
-          </Button>
+          <Link href="/signup">
+            <Button size="lg">Get started</Button>
+          </Link>
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
