@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ROUTES } from "@/lib/lib";
 import Link from "next/link";
 
 const fields = [
@@ -53,7 +54,7 @@ export default function RegisterForm() {
           <p className="text-center text-xs">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={ROUTES.AUTH.LOGIN}
               className="font-medium text-primary hover:underline"
             >
               Log in

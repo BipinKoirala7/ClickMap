@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ROUTES } from "@/lib/lib";
 import Link from "next/link";
 
 export default function LoginForm() {
@@ -33,7 +34,7 @@ export default function LoginForm() {
                 Password
               </label>
               <Link
-                href="/forgot-password"
+                href={ROUTES.AUTH.FORGOT_PASSWORD}
                 className="text-sm font-medium text-primary hover:underline"
               >
                 Forgot?
@@ -55,7 +56,7 @@ export default function LoginForm() {
         <p className="text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link
-            href="/register"
+            href={ROUTES.AUTH.REGISTER}
             className="font-medium text-primary hover:underline"
           >
             Sign up

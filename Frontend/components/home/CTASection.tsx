@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/lib/lib";
 import Link from "next/link";
 
 export default function CTASection() {
@@ -12,10 +13,10 @@ export default function CTASection() {
           Free forever for hobby projects. Pay only when you scale.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/signup">
+          <Link href={ROUTES.AUTH.REGISTER}>
             <Button size="lg">Start free</Button>
           </Link>
-          <Link href="/login">
+          <Link href={ROUTES.AUTH.LOGIN}>
             <Button
               size="lg"
               variant="outline"
