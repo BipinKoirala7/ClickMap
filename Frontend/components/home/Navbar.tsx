@@ -30,7 +30,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/login"
+            href="/auth/login"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <Button variant="ghost" size="sm">
@@ -38,7 +38,7 @@ export default function Navbar() {
             </Button>
           </Link>
           <span className="hidden h-6 w-px bg-border md:inline-block" />
-          <Link href="/signup">
+          <Link href="/auth/register">
             <Button size="sm">Sign up</Button>
           </Link>
         </div>
