@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { ROUTES } from "@/lib/lib";
 
 type PricingCardPropsT = {
   name: string;
@@ -53,7 +54,7 @@ export default function PricingCard({
             )}
           </div>
 
-          <Link href="/signup">
+          <Link href={ROUTES.AUTH.REGISTER}>
             <Button
               size="lg"
               variant={highlighted ? "default" : "outline"}

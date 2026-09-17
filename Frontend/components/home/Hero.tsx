@@ -1,7 +1,8 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HeroDemoCard from "./HeroDemoCard";
 import Link from "next/link";
+import { ROUTES } from "@/lib/lib";
 
 export default function Hero() {
   return (
@@ -25,7 +26,7 @@ export default function Hero() {
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link href="/signup">
+          <Link href={ROUTES.AUTH.REGISTER}>
             <Button size="lg">Get started</Button>
           </Link>
         </div>
