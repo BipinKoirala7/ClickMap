@@ -1,9 +1,10 @@
 import axios from "axios";
+import config from "@/lib/config";
 
 const instance = axios.create({
-  baseURL: "https://api.example.com",
+  baseURL: config.API_URL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: config.API_TIMEOUT,
 });
 
 // We can add request interceptors to modify requests before they are sent
