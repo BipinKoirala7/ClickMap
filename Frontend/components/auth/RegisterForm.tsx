@@ -1,10 +1,30 @@
+"use client";
+
+import Link from "next/link";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/lib/lib";
-import Link from "next/link";
+import { MouseEvent, useState } from "react";
+import { RegisterUserDto } from "@/types";
+import { register } from "@/api/auth/auth";
 
-const fields = [
+interface Field {
+  id: keyof RegisterUserDto;
+  label: string;
+  type: string;
+  placeholder: string;
+}
+
+const fields: Field[] = [
   { id: "name", label: "Full name", type: "text", placeholder: "Alex Stone" },
+  {
+    id: "userName",
+    label: "User name",
+    type: "text",
+    placeholder: "@alex_stone",
+  },
   {
     id: "email",
     label: "Email",
@@ -15,6 +35,27 @@ const fields = [
 ];
 
 export default function RegisterForm() {
+  const [registerDetails, setRegisterDetails] = useState<RegisterUserDto>({
+    name: "",
+    userName: "",
+    email: "",
+    password: "",
+  });
+
+  const createAccountButtonHandler = async (
+    e: MouseEvent<HTMLButtonElement>,
+  ): Promise<void> => {
+    e.preventDefault();
+    console.log("Register details:", registerDetails);
+
+    const response = await register(registerDetails);
+
+    console.log("Register response:", response);
+
+    toast.success("Account created successfully!");
+    // Handle form submission logic here
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardContent className="flex flex-col gap-10">
@@ -36,12 +77,24 @@ export default function RegisterForm() {
                 name={field.id}
                 type={field.type}
                 placeholder={field.placeholder}
+                value={registerDetails[field.id]}
+                onChange={(e) =>
+                  setRegisterDetails((prevDetails: RegisterUserDto) => ({
+                    ...prevDetails,
+                    [field.id]: e.target.value,
+                  }))
+                }
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
               />
             </div>
           ))}
 
-          <Button type="submit" size="lg" className="mt-2 w-full">
+          <Button
+            onClick={createAccountButtonHandler}
+            type="submit"
+            size="lg"
+            className="mt-2 w-full"
+          >
             Create account
           </Button>
         </form>
