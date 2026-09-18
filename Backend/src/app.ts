@@ -17,7 +17,12 @@ import { apiRouter } from "./routes.ts";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: config.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan(config.MORGAN_PROFILE));

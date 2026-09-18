@@ -10,6 +10,9 @@ const envSchema = z.object({
   // Database configuration
   DATABASE_URL: z.string().nonempty().default(""),
 
+  // Frontend configuration
+  FRONTEND_URL: z.string().nonempty().default("http://localhost:3000"),
+
   // JWT configuration
   JWT_SECRET: z.string().nonempty(),
   ACCESS_TOKEN_EXPIRATION: z.coerce.number().positive().default(900000),
