@@ -30,23 +30,25 @@ export default function Footer() {
             </p>
           </div>
 
-          {columns.map((col) => (
-            <div key={col.heading}>
-              <h4 className="text-sm font-semibold">{col.heading}</h4>
-              <ul className="mt-3 flex flex-col gap-2">
-                {col.links.map((link) => (
-                  <li key={link}>
-                    <Link
-                      href="#"
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="flex sm:justify-evenly gap-16">
+            {columns.map((col) => (
+              <div key={col.heading}>
+                <h4 className="text-sm font-semibold">{col.heading}</h4>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {col.links.map((link) => (
+                    <li key={link}>
+                      <Link
+                        href="#"
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
