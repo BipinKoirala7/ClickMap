@@ -5,6 +5,11 @@ type RegisterUserDto = {
   userName: string;
 };
 
+type LoginUserDto = {
+  email: string;
+  password: string;
+};
+
 enum UserPlan {
   FREE = "free",
   PRO = "pro",
@@ -32,5 +37,12 @@ type RestAPIResponse<T> = {
 };
 
 type RegisterUserResponse = RestAPIResponse<void>;
+type LoginUserResponse = RestAPIResponse<void>;
 
-export type { RegisterUserDto, PublicUserDto, RegisterUserResponse };
+export type {
+  PublicUserDto,
+  RegisterUserDto,
+  RegisterUserResponse,
+  LoginUserDto,
+  LoginUserResponse,
+};

@@ -48,12 +48,12 @@ export default function RegisterForm() {
     e: MouseEvent<HTMLButtonElement>,
   ): Promise<void> => {
     e.preventDefault();
-    console.log("Register details:", registerDetails);
+    console.log("Register user:", registerDetails.email);
 
     try {
       const response = await register(registerDetails);
       console.log("Register response:", response);
-      toast.success("Account created successfully!");
+      toast.success(response.message);
       router.push("/auth/login");
     } catch (e) {
       console.log("Error", e);
