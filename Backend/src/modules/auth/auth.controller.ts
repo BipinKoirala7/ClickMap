@@ -5,8 +5,8 @@ import { authService } from "./auth.service.ts";
 async function registerController(req: Request, res: Response) {
   await authService.registerUser(req.body);
   return res
-    .status(200)
-    .json(RestApiResponse.success(200, "User Registered", null));
+    .status(201)
+    .json(RestApiResponse.success(201, "User Registered", null));
 }
 
 async function loginController(req: Request, res: Response) {

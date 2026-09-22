@@ -27,7 +27,7 @@ export const registerUserSchema = createInsertSchema(users, {
       .trim()
       .check(z.minLength(1, "Username must be at least 1 character long"))
       .openapi("Username")
-      .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores")
+      .regex(/^[a-z0-9_]+$/, "Only letters, numbers, and underscores")
       .max(100, "Username must be less than 100 characters"),
 })
   .pick({
