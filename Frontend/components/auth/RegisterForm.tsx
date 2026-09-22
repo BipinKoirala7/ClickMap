@@ -31,7 +31,12 @@ const fields: Field[] = [
     type: "email",
     placeholder: "you@example.com",
   },
-  { id: "password", label: "Password", type: "password", placeholder: "" },
+  {
+    id: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "････････",
+  },
 ];
 
 export default function RegisterForm() {
@@ -57,7 +62,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <Card className="w-full md:p-10">
+    <Card className="w-full p-5 md:p-10">
       <CardContent className="flex flex-col gap-5">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">Create your account</h1>

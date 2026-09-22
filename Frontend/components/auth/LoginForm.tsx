@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function LoginForm() {
   return (
-    <Card className="w-full md:p-10">
+    <Card className="w-full p-5 md:p-10">
       <CardContent className="flex flex-col gap-10">
         <div className="flex flex-col gap-2 text-center">
           <h1 className="text-2xl font-semibold">Welcome back</h1>
