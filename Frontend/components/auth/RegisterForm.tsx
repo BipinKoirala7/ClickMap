@@ -57,8 +57,8 @@ export default function RegisterForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardContent className="flex flex-col gap-10">
+    <Card className="w-full md:p-10">
+      <CardContent className="flex flex-col gap-5">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">Create your account</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -89,31 +89,30 @@ export default function RegisterForm() {
             </div>
           ))}
 
-          <Button
-            onClick={createAccountButtonHandler}
-            type="submit"
-            size="lg"
-            className="mt-2 w-full"
-          >
-            Create account
-          </Button>
-        </form>
-
-        <div className="flex flex-col gap-2">
-          <p className="text-center text-xs text-muted-foreground">
-            By signing up you agree to the Terms of Service.
-          </p>
-
-          <p className="text-center text-xs">
-            Already have an account?{" "}
-            <Link
-              href={ROUTES.AUTH.LOGIN}
-              className="font-medium text-primary hover:underline"
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={createAccountButtonHandler}
+              type="submit"
+              size="lg"
+              className="mt-2 w-full"
             >
-              Log in
-            </Link>
-          </p>
-        </div>
+              Create account
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              By signing up you agree to the Terms of Service.
+            </p>
+
+            <p className="text-center text-xs">
+              Already have an account?{" "}
+              <Link
+                href={ROUTES.AUTH.LOGIN}
+                className="font-medium text-primary hover:underline"
+              >
+                Log in
+              </Link>
+            </p>
+          </div>
+        </form>
       </CardContent>
     </Card>
   );
