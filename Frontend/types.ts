@@ -1,8 +1,8 @@
 type RegisterUserDto = {
   name: string;
+  userName: string;
   email: string;
   password: string;
-  userName: string;
 };
 
 type LoginUserDto = {

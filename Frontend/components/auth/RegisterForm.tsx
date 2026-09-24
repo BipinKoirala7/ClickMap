@@ -32,7 +32,12 @@ const fields: Field[] = [
     type: "email",
     placeholder: "you@example.com",
   },
-  { id: "password", label: "Password", type: "password", placeholder: "" },
+  {
+    id: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Password...",
+  },
 ];
 
 export default function RegisterForm() {

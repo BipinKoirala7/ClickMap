@@ -66,13 +66,13 @@ async function loginAndGetCookies() {
 }
 
 describe("POST /auth/register", () => {
-  it("registers a new user and returns 200 with no data payload", async () => {
+  it("registers a new user and returns 201 with no data payload", async () => {
     const res = await request(app).post(REGISTER_PATH).send(VALID_USER);
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     expect(res.body).toMatchObject({
       success: true,
-      statusCode: 200,
+      statusCode: 201,
       message: "User Registered",
       data: null,
     });

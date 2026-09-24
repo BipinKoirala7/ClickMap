@@ -4,6 +4,20 @@ import { z } from "zod";
 import { createInsertSchema } from "drizzle-zod";
 
 export const registerUserSchema = createInsertSchema(users, {
+  name: (schema) =>
+    schema
+      .trim()
+      .check(z.minLength(5, "Name must be at least 5 characters long"))
+      .openapi("Name"),
+  userName: (schema) =>
+    schema
+      .trim()
+      .check(z.minLength(3, "Username must be at least 3 character long"))
+      .regex(
+        /^[a-z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores",
+      )
+      .openapi("Username"),
   email: (schema) =>
     schema
       .trim()
@@ -16,19 +30,8 @@ export const registerUserSchema = createInsertSchema(users, {
     .max(255, "Password must be less than 255 characters")
     .regex(/[A-Z]/, "Must contain an uppercase letter")
     .regex(/[a-z]/, "Must contain a lowercase letter")
-    .regex(/[0-9]/, "Must contain a number"),
-  name: (schema) =>
-    schema
-      .trim()
-      .check(z.minLength(5, "Name must be at least 5 characters long"))
-      .openapi("Name"),
-  userName: (schema) =>
-    schema
-      .trim()
-      .check(z.minLength(1, "Username must be at least 1 character long"))
-      .openapi("Username")
-      .regex(/^[a-z0-9_]+$/, "Only letters, numbers, and underscores")
-      .max(100, "Username must be less than 100 characters"),
+    .regex(/[0-9]/, "Must contain a number")
+    .regex(/[^A-Za-z0-9\s]/, "Must contain a special character"),
 })
   .pick({
     email: true,
