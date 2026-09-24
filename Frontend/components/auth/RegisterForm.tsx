@@ -10,6 +10,7 @@ import { MouseEvent, useState } from "react";
 import { RegisterUserDto } from "@/types";
 import { register } from "@/api/auth/auth";
 import { useRouter } from "next/navigation";
+import { registerSchema } from "@/lib/validation";
 
 interface Field {
   id: keyof RegisterUserDto;
@@ -56,6 +57,12 @@ export default function RegisterForm() {
     console.log("Register user:", registerDetails.email);
 
     try {
+      const parsedRegisterDetails = registerSchema.safeParse(registerDetails);
+      if (!parsedRegisterDetails.success) {
+        const errorMessage = parsedRegisterDetails.error.issues[0].message;
+        toast.error(errorMessage);
+        return;
+      }
       const response = await register(registerDetails);
       console.log("Register response:", response);
       toast.success(response.message);
