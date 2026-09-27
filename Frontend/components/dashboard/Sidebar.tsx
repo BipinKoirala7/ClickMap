@@ -45,7 +45,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex shrink-0 flex-col justify-between bg-[#1C1C1C] text-white",
+        "dark flex shrink-0 flex-col justify-between bg-black/90 text-sidebar-foreground",
         TRANSITION,
         collapsed ? "w-18" : "w-64",
       )}
@@ -53,8 +53,8 @@ export default function Sidebar() {
       <div>
         {/* Logo — icon position fixed, only label collapses */}
         <Link href="/" className="flex items-center gap-2 px-6 py-5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-500">
-            <Link2 size={18} className="text-white" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
+            <Link2 size={18} className="text-sidebar-primary-foreground" />
           </div>
           <CollapsingLabel collapsed={collapsed}>
             <span className="text-lg font-semibold">ClickMap</span>
@@ -70,7 +70,7 @@ export default function Sidebar() {
               collapsed ? "max-h-0 opacity-0" : "max-h-8 opacity-100",
             )}
           >
-            <p className="whitespace-nowrap px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+            <p className="whitespace-nowrap px-2 pb-2 text-xs font-medium uppercase tracking-wide text-sidebar-foreground/50">
               Workspace
             </p>
           </div>
@@ -87,8 +87,8 @@ export default function Sidebar() {
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
                     TRANSITION,
                     active
-                      ? "bg-white/10 font-medium text-white"
-                      : "text-gray-400 hover:bg-white/5 hover:text-white",
+                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                   )}
                 >
                   <Icon size={18} className="shrink-0" />
@@ -103,14 +103,16 @@ export default function Sidebar() {
       </div>
 
       {/* User footer — avatar position fixed, only text block collapses */}
-      <div className="flex items-center gap-3 border-t border-white/10 px-6 py-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-semibold">
+      <div className="flex items-center gap-3 border-t border-sidebar-border px-6 py-4">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
           AS
         </div>
         <CollapsingLabel collapsed={collapsed}>
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">Alex Stone</p>
-            <p className="truncate text-xs text-gray-500">alex@clickmap.io</p>
+            <p className="truncate text-xs text-sidebar-foreground/50">
+              alex@clickmap.io
+            </p>
           </div>
         </CollapsingLabel>
       </div>
