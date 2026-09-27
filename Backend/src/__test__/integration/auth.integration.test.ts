@@ -73,7 +73,7 @@ describe("POST /auth/register", () => {
     expect(res.body).toMatchObject({
       success: true,
       statusCode: 201,
-      message: "User Registered",
+      message: "User Registered Successfully",
       data: null,
     });
   });
@@ -88,7 +88,7 @@ describe("POST /auth/register", () => {
   });
 
   it("rejects a duplicate email with a 4xx (not a raw 500)", async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
 
     const res = await request(app).post(REGISTER_PATH).send(VALID_USER);
 
@@ -108,7 +108,7 @@ describe("POST /auth/register", () => {
 
 describe("POST /auth/login", () => {
   beforeEach(async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
   });
 
   it("logs in with valid credentials, returns 200 and sets auth cookies", async () => {
@@ -121,7 +121,7 @@ describe("POST /auth/login", () => {
     expect(res.body).toMatchObject({
       success: true,
       statusCode: 200,
-      message: "User Logged In",
+      message: "User Logged In Successfully",
       data: null,
     });
 
@@ -180,7 +180,7 @@ describe("POST /auth/login", () => {
 
 describe("POST /auth/refresh", () => {
   beforeEach(async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
   });
 
   it("issues a new access + refresh token pair for a valid, active refresh token", async () => {
@@ -274,7 +274,7 @@ describe("POST /auth/refresh", () => {
 
 describe("POST /auth/logout", () => {
   beforeEach(async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
   });
 
   it("logs out a valid session: 200, clears cookies, and invalidates the refresh token", async () => {
@@ -288,7 +288,7 @@ describe("POST /auth/logout", () => {
     expect(res.body).toMatchObject({
       success: true,
       statusCode: 200,
-      message: "User Logged Out",
+      message: "User Logged Out Successfully",
       data: null,
     });
 
@@ -360,13 +360,13 @@ describe("POST /auth/logout", () => {
       .set("Cookie", [`refreshToken=${refreshToken}`]);
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("User Logged Out");
+    expect(res.body.message).toBe("User Logged Out Successfully");
   });
 });
 
 describe("POST /auth/activate", () => {
   beforeEach(async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
   });
 
   it("activates a deactivated user and returns 200", async () => {
@@ -386,7 +386,7 @@ describe("POST /auth/activate", () => {
     expect(res.body).toMatchObject({
       success: true,
       statusCode: 200,
-      message: "User Account Activated",
+      message: "User Account Activated Successfully",
       data: null,
     });
 
@@ -435,7 +435,7 @@ describe("POST /auth/activate", () => {
 
 describe("POST /auth/deactivate", () => {
   beforeEach(async () => {
-    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(200);
+    await request(app).post(REGISTER_PATH).send(VALID_USER).expect(201);
   });
 
   it("deactivates an active user and returns 200", async () => {
@@ -449,7 +449,7 @@ describe("POST /auth/deactivate", () => {
     expect(res.body).toMatchObject({
       success: true,
       statusCode: 200,
-      message: "User Account DeActivated",
+      message: "User Account DeActivated Successfully",
       data: null,
     });
 

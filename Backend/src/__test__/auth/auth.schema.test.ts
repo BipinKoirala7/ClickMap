@@ -10,7 +10,7 @@ import {
 
 const validRegisterInput = {
   email: "Test@Example.com",
-  password: "Password1",
+  password: "Password@1",
   name: "Test User",
   userName: "test_user123",
 };
@@ -139,13 +139,13 @@ describe("registerUserSchema", () => {
     it("accepts a password exactly at the 8 character minimum", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        password: "Passwor1",
+        password: "Passwor@1",
       });
       expect(result.success).toBe(true);
     });
 
     it("accepts a password exactly at the 255 character maximum", () => {
-      const password = "Aa1" + "a".repeat(252); // length 255
+      const password = "A@1" + "a".repeat(252); // length 255
       expect(password.length).toBe(255);
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
@@ -184,18 +184,18 @@ describe("registerUserSchema", () => {
       }
     });
 
-    it("rejects a name over 100 characters (varchar length)", () => {
+    it("rejects a name over 50 characters (varchar length)", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        name: "a".repeat(101),
+        name: "a".repeat(51),
       });
       expect(result.success).toBe(false);
     });
 
-    it("accepts a name exactly at the 100 character limit", () => {
+    it("accepts a name exactly at the 50 character limit", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        name: "a".repeat(100),
+        name: "a".repeat(50),
       });
       expect(result.success).toBe(true);
     });
@@ -235,26 +235,26 @@ describe("registerUserSchema", () => {
       expect(result.success).toBe(false);
     });
 
-    it("accepts userName with only letters, numbers, and underscores", () => {
+    it("accepts userName with only lowercase letters, numbers, and underscores", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        userName: "Test_User_99",
+        userName: "test_user_99",
       });
       expect(result.success).toBe(true);
     });
 
-    it("rejects userName longer than 100 characters", () => {
+    it("rejects userName longer than 50 characters", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        userName: "a".repeat(101),
+        userName: "a".repeat(51),
       });
       expect(result.success).toBe(false);
     });
 
-    it("accepts userName exactly at the 100 character limit", () => {
+    it("accepts userName exactly at the 50 character limit", () => {
       const result = registerUserSchema.safeParse({
         ...validRegisterInput,
-        userName: "a".repeat(100),
+        userName: "a".repeat(50),
       });
       expect(result.success).toBe(true);
     });

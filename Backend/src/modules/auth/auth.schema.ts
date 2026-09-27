@@ -15,7 +15,7 @@ export const registerUserSchema = createInsertSchema(users, {
       .check(z.minLength(3, "Username must be at least 3 character long"))
       .regex(
         /^[a-z0-9_]+$/,
-        "Username can only contain letters, numbers, and underscores",
+        "Username can only contain lowercase letters, numbers, and underscores",
       )
       .openapi("Username"),
   email: (schema) =>

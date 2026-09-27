@@ -189,13 +189,13 @@ describe("updateUserSchema", () => {
       expect(result.success).toBe(true);
     });
 
-    it("rejects a name longer than 100 characters", () => {
-      const result = updateUserSchema.safeParse({ name: "a".repeat(101) });
+    it("rejects a name longer than 50 characters", () => {
+      const result = updateUserSchema.safeParse({ name: "a".repeat(51) });
       expect(result.success).toBe(false);
     });
 
-    it("accepts a name exactly at the 100 character limit", () => {
-      const result = updateUserSchema.safeParse({ name: "a".repeat(100) });
+    it("accepts a name exactly at the 50 character limit", () => {
+      const result = updateUserSchema.safeParse({ name: "a".repeat(50) });
       expect(result.success).toBe(true);
     });
 
@@ -242,16 +242,16 @@ describe("updateUserSchema", () => {
       expect(result.success).toBe(true);
     });
 
-    it("rejects userName longer than 100 characters", () => {
+    it("rejects userName longer than 50 characters", () => {
       const result = updateUserSchema.safeParse({
-        userName: "a".repeat(101),
+        userName: "a".repeat(51),
       });
       expect(result.success).toBe(false);
     });
 
-    it("accepts userName exactly at the 100 character limit", () => {
+    it("accepts userName exactly at the 50 character limit", () => {
       const result = updateUserSchema.safeParse({
-        userName: "a".repeat(100),
+        userName: "a".repeat(50),
       });
       expect(result.success).toBe(true);
     });
