@@ -58,13 +58,16 @@ export default function RegisterForm() {
 
     try {
       const parsedRegisterDetails = registerSchema.safeParse(registerDetails);
+
       if (!parsedRegisterDetails.success) {
         const errorMessage = parsedRegisterDetails.error.issues[0].message;
         toast.error(errorMessage);
         return;
       }
-      const response = await register(registerDetails);
+
+      const response = await register(parsedRegisterDetails.data);
       console.log("Register response:", response);
+
       toast.success(response.message);
       router.push("/auth/login");
     } catch (e) {

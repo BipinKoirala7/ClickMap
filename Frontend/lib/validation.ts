@@ -2,8 +2,9 @@ import { z } from "zod";
 
 const registerSchema = z.object({
   name: z
-    .string()
+    .string("Name must be a string")
     .trim()
+    .regex(/^[A-Za-z\s]+$/, "Name can only contain letters and spaces")
     .min(5, "Name must be at least 5 characters long")
     .max(50, "Name must be less than 50 characters long"),
   userName: z

@@ -4,6 +4,7 @@ import { login } from "@/api/auth/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ROUTES } from "@/lib/lib";
+import { loginSchema } from "@/lib/validation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MouseEvent, useState } from "react";
@@ -21,8 +22,17 @@ export default function LoginForm() {
     console.log("Logging user:", loginDetails.email);
 
     try {
-      const response = await login(loginDetails);
+      const parsedLoginDetails = loginSchema.safeParse(loginDetails);
+
+      if (!parsedLoginDetails.success) {
+        const errorMessage = parsedLoginDetails.error.issues[0].message;
+        toast.error(errorMessage);
+        return;
+      }
+
+      const response = await login(parsedLoginDetails.data);
       console.log("Register response:", response);
+
       toast.success(response.message);
       router.push("/dashboard");
     } catch (e) {
