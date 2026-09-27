@@ -9,6 +9,8 @@ import { ROUTES } from "@/lib/lib";
 import { MouseEvent, useState } from "react";
 import { RegisterUserDto } from "@/types";
 import { register } from "@/api/auth/auth";
+import { useRouter } from "next/navigation";
+import { registerSchema } from "@/lib/validation";
 
 interface Field {
   id: keyof RegisterUserDto;
@@ -40,6 +42,7 @@ const fields: Field[] = [
 ];
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [registerDetails, setRegisterDetails] = useState<RegisterUserDto>({
     name: "",
     userName: "",
@@ -51,14 +54,31 @@ export default function RegisterForm() {
     e: MouseEvent<HTMLButtonElement>,
   ): Promise<void> => {
     e.preventDefault();
-    console.log("Register details:", registerDetails);
+    console.log("Register user:", registerDetails.email);
 
-    const response = await register(registerDetails);
+    try {
+      const parsedRegisterDetails = registerSchema.safeParse(registerDetails);
 
-    console.log("Register response:", response);
+      if (!parsedRegisterDetails.success) {
+        const errorMessage = parsedRegisterDetails.error.issues[0].message;
+        toast.error(errorMessage);
+        return;
+      }
 
-    toast.success("Account created successfully!");
-    // Handle form submission logic here
+      const response = await register(parsedRegisterDetails.data);
+      console.log("Register response:", response);
+
+      toast.success(response.message);
+      router.push("/auth/login");
+    } catch (e) {
+      console.log("Error", e);
+
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Something went wrong!");
+      }
+    }
   };
 
   return (

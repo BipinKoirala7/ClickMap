@@ -120,7 +120,7 @@ describe("GET /users/", () => {
     const res = await request(app).get(GET_USER_URL);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
   });
 
   it("returns 401 when the access token signature verification fails", async () => {
@@ -138,7 +138,7 @@ describe("GET /users/", () => {
     const res = await request(app).get(GET_USER_URL);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
   });
 
   it("returns 401 when a token claim fails validation", async () => {
@@ -161,7 +161,7 @@ describe("GET /users/", () => {
     const res = await request(app).get(GET_USER_URL);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
   });
 
   // --- Downstream errors -----------------------------------------------------
@@ -314,7 +314,7 @@ describe("PUT /user Request", () => {
       .send(validUpdateBody);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
     expect(userServiceMock.updateUser).not.toHaveBeenCalled();
   });
 
@@ -332,7 +332,7 @@ describe("PUT /user Request", () => {
       .send(validUpdateBody);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
     expect(userServiceMock.updateUser).not.toHaveBeenCalled();
   });
 
@@ -355,7 +355,7 @@ describe("PUT /user Request", () => {
       .send(validUpdateBody);
 
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe("User Session expred, Please Log in again");
+    expect(res.body.message).toBe("User Session expired, Please Log in again");
     expect(userServiceMock.updateUser).not.toHaveBeenCalled();
   });
 

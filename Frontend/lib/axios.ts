@@ -28,10 +28,9 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    console.log("Error", error);
-    toast.error(
-      error.response?.data?.message || "An error occurred. Please try again.",
-    );
+    if (error.response.status >= 500) {
+      toast.error("Something went wrong on our end. Please try again.");
+    }
 
     return Promise.reject(error);
   },

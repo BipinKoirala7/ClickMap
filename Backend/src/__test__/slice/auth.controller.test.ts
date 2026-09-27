@@ -51,8 +51,8 @@ describe("POST /user Request", () => {
     const res = await server.post("/api/v1/auth/register").send(newUser);
 
     // Assert
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("User Registered");
+    expect(res.statusCode).toBe(201);
+    expect(res.body.message).toBe("User Registered Successfully");
     expect(authServiceMock.registerUser).toHaveBeenCalledWith(newUser);
   });
 
@@ -107,7 +107,7 @@ describe("POST /login", () => {
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       statusCode: 200,
-      message: "User Logged In",
+      message: "User Logged In Successfully",
       data: null,
     });
     expect(authService.loginUser).toHaveBeenCalledWith(
@@ -269,7 +269,7 @@ describe("POST /auth/logout", () => {
       expect(response.body).toMatchObject({
         statusCode: 200,
         data: null,
-        message: "User Logged Out",
+        message: "User Logged Out Successfully",
         success: true,
       });
       expect(authService.logout).toHaveBeenCalledTimes(1);
@@ -382,7 +382,7 @@ describe("POST /auth/activate", () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         statusCode: 200,
-        message: "User Account Activated",
+        message: "User Account Activated Successfully",
         data: null,
         success: true,
       });
@@ -520,7 +520,7 @@ describe("POST /auth/deactivate", () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         statusCode: 200,
-        message: "User Account DeActivated",
+        message: "User Account DeActivated Successfully",
         data: null,
         success: true,
       });
