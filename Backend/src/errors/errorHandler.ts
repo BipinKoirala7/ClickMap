@@ -45,7 +45,7 @@ export function errorHandler(
         .json(
           RestApiResponse.error(
             401,
-            "User Session expred, Please Log in again",
+            "User Session expired, Please Log in again",
           ),
         );
     }
@@ -56,7 +56,7 @@ export function errorHandler(
         .json(
           RestApiResponse.error(
             401,
-            "User Session expred, Please Log in again",
+            "User Session expired, Please Log in again",
           ),
         );
     }
@@ -67,7 +67,7 @@ export function errorHandler(
         .json(
           RestApiResponse.error(
             401,
-            "User Session expred, Please Log in again",
+            "User Session expired, Please Log in again",
           ),
         );
     }

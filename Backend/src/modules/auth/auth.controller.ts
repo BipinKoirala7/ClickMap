@@ -6,14 +6,14 @@ async function registerController(req: Request, res: Response) {
   await authService.registerUser(req.body);
   return res
     .status(201)
-    .json(RestApiResponse.success(201, "User Registered", null));
+    .json(RestApiResponse.success(201, "User Registered Successfully", null));
 }
 
 async function loginController(req: Request, res: Response) {
   await authService.loginUser(req.body, res);
   return res
     .status(200)
-    .json(RestApiResponse.success(200, "User Logged In", null));
+    .json(RestApiResponse.success(200, "User Logged In Successfully", null));
 }
 
 async function refreshTokenController(req: Request, res: Response) {
@@ -27,7 +27,7 @@ async function logoutController(req: Request, res: Response) {
   await authService.logout(req, res);
   return res
     .status(200)
-    .json(RestApiResponse.success(200, "User Logged Out", null));
+    .json(RestApiResponse.success(200, "User Logged Out Successfully", null));
 }
 
 async function deactivateUserController(req: Request, res: Response) {
@@ -35,7 +35,13 @@ async function deactivateUserController(req: Request, res: Response) {
   await authService.deactivateUserStatus(userId);
   return res
     .status(200)
-    .json(RestApiResponse.success(200, "User Account DeActivated", null));
+    .json(
+      RestApiResponse.success(
+        200,
+        "User Account DeActivated Successfully",
+        null,
+      ),
+    );
 }
 
 async function activateUserController(req: Request, res: Response) {
@@ -43,7 +49,9 @@ async function activateUserController(req: Request, res: Response) {
   await authService.activateUserStatus(userId);
   return res
     .status(200)
-    .json(RestApiResponse.success(200, "User Account Activated", null));
+    .json(
+      RestApiResponse.success(200, "User Account Activated Successfully", null),
+    );
 }
 
 export const authController = {
