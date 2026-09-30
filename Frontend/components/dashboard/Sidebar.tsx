@@ -51,7 +51,7 @@ export default function Sidebar() {
     >
       <div>
         {/* Logo — icon position fixed, only label collapses */}
-        <Link href="/" className="flex items-center gap-2 px-6 py-5">
+        <Link href="/" className="flex items-center gap-2 px-5 py-5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
             <Link2 size={18} className="text-sidebar-primary-foreground" />
           </div>
