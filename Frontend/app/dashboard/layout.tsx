@@ -15,18 +15,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-background">
-        <SidebarProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <Navbar />
-              <main className="flex-1 overflow-y-auto p-6">{children}</main>
-            </div>
-          </div>
-        </SidebarProvider>
-      </body>
-    </html>
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Navbar />
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }

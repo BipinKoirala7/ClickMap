@@ -53,8 +53,8 @@ const links: LinkRow[] = [
 ];
 
 const statusStyles: Record<LinkStatus, string> = {
-  active: "bg-primary/10 text-primary",
-  paused: "bg-secondary text-secondary-foreground",
+  active: "bg-active text-active-foreground",
+  paused: "bg-inactive text-inactive-foreground",
   expired: "bg-muted text-muted-foreground",
 };
 

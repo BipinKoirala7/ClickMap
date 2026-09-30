@@ -1,9 +1,8 @@
 "use client";
 
-import { PanelLeft, Search, Bell } from "lucide-react";
+import { PanelLeft, Search } from "lucide-react";
 import { useSidebar } from "@/lib/sidebar-context";
-import { Button } from "../ui/button";
-import NotificationModel from "./NotificationModel";
+import Notification from "@/components/dashboard/Notification";
 
 export default function Navbar() {
   const { toggleSidebar } = useSidebar();
@@ -33,7 +32,7 @@ export default function Navbar() {
             className="w-64 rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
           />
         </div>
-        <NotificationModel />
+        <Notification />
       </div>
     </header>
   );

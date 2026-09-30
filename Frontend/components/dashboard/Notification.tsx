@@ -18,23 +18,25 @@ type Notification = {
 // Empty for now; swap in real data later
 const notifications: Notification[] = [];
 
-function NotificationModel() {
+function Notification() {
   const hasUnread = notifications.length > 0;
 
   return (
     <Popover>
-      <PopoverTrigger>
-        <Button
-          variant="ghost"
-          className="relative rounded-lg p-2 bg-transparent text-foreground hover:bg-accent"
-          aria-label="Notifications"
-        >
-          <Bell size={18} className="text-muted-foreground" />
-          {hasUnread && (
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-          )}
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            className="relative rounded-lg p-2 bg-transparent text-foreground hover:bg-accent"
+            aria-label="Notifications"
+          >
+            <Bell size={18} className="text-muted-foreground" />
+            {hasUnread && (
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
+            )}
+          </Button>
+        }
+      ></PopoverTrigger>
 
       <PopoverContent
         align="end"
@@ -77,4 +79,4 @@ function NotificationModel() {
   );
 }
 
-export default NotificationModel;
+export default Notification;
