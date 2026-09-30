@@ -8,16 +8,15 @@ import { useSidebar } from "@/lib/sidebar-context";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Overview", href: "/", icon: LayoutGrid },
-  { label: "Links", href: "/links", icon: Link2 },
-  { label: "Analytics", href: "/analytics", icon: BarChart2 },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Overview", href: "/dashboard", icon: LayoutGrid },
+  { label: "Links", href: "/dashboard/links", icon: Link2 },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart2 },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 // Shared transition so text collapse is perfectly in sync with rail width
 const TRANSITION = "transition-all duration-300 ease-in-out";
 
-// Reusable "collapsing label" — icon never moves, only this shrinks away
 function CollapsingLabel({
   collapsed,
   children,
