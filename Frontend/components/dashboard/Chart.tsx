@@ -29,17 +29,22 @@ function Chart() {
   ];
 
   return (
-    <div className="mt-6 rounded-2xl bg-muted/40 p-6">
-      <h2 className="text-lg font-semibold text-foreground">
-        Clicks over time
-      </h2>
-      <p className="text-sm text-muted-foreground">
-        Daily total clicks and unique visitors
-      </p>
+    <div className="w-full rounded-2xl bg-muted/40 p-6 flex flex-col gap-6">
+      <div className="flex flex-col">
+        <h2 className="text-lg font-semibold text-foreground">
+          Clicks over time
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Daily total clicks and unique visitors
+        </p>
+      </div>
 
-      <div className="mt-6 h-80 w-full">
+      <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+          >
             <defs>
               <linearGradient id="clicksGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop
@@ -78,6 +83,7 @@ function Chart() {
               tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
             />
             <YAxis
+              width={"auto"}
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
@@ -96,6 +102,7 @@ function Chart() {
               stroke="var(--chart-1)"
               strokeWidth={2}
               fill="url(#clicksGradient)"
+              isAnimationActive={false}
             />
             <Area
               type="monotone"
@@ -103,6 +110,7 @@ function Chart() {
               stroke="var(--chart-4)"
               strokeWidth={2}
               fill="url(#visitorsGradient)"
+              isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>

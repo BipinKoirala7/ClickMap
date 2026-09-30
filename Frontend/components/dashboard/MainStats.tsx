@@ -29,7 +29,7 @@ function MainStats() {
   ];
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map(({ label, value, change, icon: Icon }) => (
         <div key={label} className="rounded-2xl bg-muted/40 p-5">
           <div className="flex items-center justify-between">
