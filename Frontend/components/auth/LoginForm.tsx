@@ -21,29 +21,39 @@ export default function LoginForm() {
     e.preventDefault();
     console.log("Logging user:", loginDetails.email);
 
-    try {
-      const parsedLoginDetails = loginSchema.safeParse(loginDetails);
+    const parsedLoginDetails = loginSchema.safeParse(loginDetails);
 
-      if (!parsedLoginDetails.success) {
-        const errorMessage = parsedLoginDetails.error.issues[0].message;
-        toast.error(errorMessage);
-        return;
-      }
-
-      const response = await login(parsedLoginDetails.data);
-      console.log("Register response:", response);
-
-      toast.success(response.message);
-      router.push("/dashboard");
-    } catch (e) {
-      console.log("Error", e);
-
-      if (e instanceof Error) {
-        toast.error(e.message);
-      } else {
-        toast.error("Something went wrong!");
-      }
+    if (!parsedLoginDetails.success) {
+      const errorMessage = parsedLoginDetails.error.issues[0].message;
+      toast.error(errorMessage);
+      return;
     }
+
+    toast.promise(login(parsedLoginDetails.data), {
+      loading: "Logging in...",
+      success: (data) => {
+        router.push("/dashboard");
+        return data.message;
+      },
+      error: (err) =>
+        err instanceof Error ? err.message : "Something went wrong!",
+    });
+
+    // try {
+    //   const response = await login(parsedLoginDetails.data);
+    //   console.log("Register response:", response);
+
+    //   toast.success(response.message);
+    //   router.push("/dashboard");
+    // } catch (e) {
+    //   console.log("Error", e);
+
+    //   if (e instanceof Error) {
+    //     toast.error(e.message);
+    //   } else {
+    //     toast.error("Something went wrong!");
+    //   }
+    // }
   };
 
   return (
@@ -101,7 +111,12 @@ export default function LoginForm() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Button type="submit" size="lg" className="mt-2 w-full">
+            <Button
+              type="submit"
+              size="lg"
+              className="mt-2 w-full"
+              onClick={loginButtonHandler}
+            >
               Log in
             </Button>
             <p className="text-center text-sm">

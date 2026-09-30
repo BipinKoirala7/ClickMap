@@ -56,29 +56,39 @@ export default function RegisterForm() {
     e.preventDefault();
     console.log("Register user:", registerDetails.email);
 
-    try {
-      const parsedRegisterDetails = registerSchema.safeParse(registerDetails);
+    const parsedRegisterDetails = registerSchema.safeParse(registerDetails);
 
-      if (!parsedRegisterDetails.success) {
-        const errorMessage = parsedRegisterDetails.error.issues[0].message;
-        toast.error(errorMessage);
-        return;
-      }
-
-      const response = await register(parsedRegisterDetails.data);
-      console.log("Register response:", response);
-
-      toast.success(response.message);
-      router.push("/auth/login");
-    } catch (e) {
-      console.log("Error", e);
-
-      if (e instanceof Error) {
-        toast.error(e.message);
-      } else {
-        toast.error("Something went wrong!");
-      }
+    if (!parsedRegisterDetails.success) {
+      const errorMessage = parsedRegisterDetails.error.issues[0].message;
+      toast.error(errorMessage);
+      return;
     }
+
+    toast.promise(register(parsedRegisterDetails.data), {
+      loading: "Creating account...",
+      success: (data) => {
+        router.push("/auth/login");
+        return data.message;
+      },
+      error: (err) =>
+        err instanceof Error ? err.message : "Something went wrong!",
+    });
+
+    // try {
+    //   const response = await register(parsedRegisterDetails.data);
+    //   console.log("Register response:", response);
+
+    //   toast.success(response.message);
+    //   router.push("/auth/login");
+    // } catch (e) {
+    //   console.log("Error", e);
+
+    //   if (e instanceof Error) {
+    //     toast.error(e.message);
+    //   } else {
+    //     toast.error("Something went wrong!");
+    //   }
+    // }
   };
 
   return (
