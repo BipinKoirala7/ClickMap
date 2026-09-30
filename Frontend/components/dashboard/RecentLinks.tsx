@@ -125,7 +125,8 @@ export default function RecentLinks() {
                 <td className="whitespace-nowrap py-3 pr-2 text-muted-foreground">
                   {link.created}
                 </td>
-                <td className="py-3 flex align-center justify-center">
+                {/* Change from this more options button to a link to the links analytics page */}
+                <td className="py-3 px-3 flex align-center justify-center">
                   <button
                     className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
                     aria-label="More options"
