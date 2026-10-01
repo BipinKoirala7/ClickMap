@@ -38,6 +38,7 @@ type RestAPIResponse<T> = {
 
 type RegisterUserResponse = RestAPIResponse<void>;
 type LoginUserResponse = RestAPIResponse<void>;
+type GetUserResponse = RestAPIResponse<PublicUserDto>;
 
 export type {
   PublicUserDto,
@@ -45,4 +46,5 @@ export type {
   RegisterUserResponse,
   LoginUserDto,
   LoginUserResponse,
+  GetUserResponse,
 };

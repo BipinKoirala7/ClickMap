@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Link2, LayoutGrid, BarChart2, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import NextLink from "next/link";
-import { useSidebar } from "@/lib/sidebar-context";
+import { useSidebar } from "@/context/sidebar-context";
 import { cn } from "@/lib/utils";
 
 const navItems = [
