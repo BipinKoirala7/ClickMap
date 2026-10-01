@@ -33,7 +33,7 @@ vi.mock("@/modules/user/user.repository.ts");
 
 const userServiceMock = vi.mocked(userService);
 
-const GET_USER_URL = "/api/v1/user/";
+const GET_USER_URL = "/api/v1/user/me";
 
 describe("GET /users/", () => {
   it("returns 200 and the public user payload", async () => {

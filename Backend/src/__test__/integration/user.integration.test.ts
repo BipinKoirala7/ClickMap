@@ -15,7 +15,7 @@ let app: Express;
 
 const SIGNUP_PATH = "/api/v1/auth/register";
 const LOGIN_PATH = "/api/v1/auth/login";
-const GET_USER_PATH = "/api/v1/user";
+const GET_USER_PATH = "/api/v1/user/me";
 const UPDATE_USER_PATH = "/api/v1/user";
 
 beforeAll(async () => {

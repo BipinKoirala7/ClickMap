@@ -6,7 +6,7 @@ const userRouter = Router();
 
 userRouter.use(authenticate);
 
-userRouter.get("/", userController.getUserController);
+userRouter.get("/me", userController.getUserController);
 userRouter.put("/", userController.updateUserController);
 
 export default userRouter;
