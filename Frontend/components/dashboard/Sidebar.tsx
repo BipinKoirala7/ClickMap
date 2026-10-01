@@ -6,6 +6,11 @@ import { usePathname } from "next/navigation";
 import NextLink from "next/link";
 import { useSidebar } from "@/context/sidebar-context";
 import { cn } from "@/lib/utils";
+import { PublicUserDto } from "@/types";
+
+type SidebarPropsT = {
+  user: PublicUserDto;
+};
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutGrid },
@@ -37,7 +42,8 @@ function CollapsingLabel({
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar(props: SidebarPropsT) {
+  const { user } = props;
   const pathname = usePathname();
   const { collapsed } = useSidebar();
 
@@ -108,9 +114,9 @@ export default function Sidebar() {
         </div>
         <CollapsingLabel collapsed={collapsed}>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Alex Stone</p>
+            <p className="truncate text-sm font-medium">{user.name}</p>
             <p className="truncate text-xs text-sidebar-foreground/50">
-              alex@clickmap.io
+              {user.email}
             </p>
           </div>
         </CollapsingLabel>

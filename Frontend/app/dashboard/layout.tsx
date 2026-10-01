@@ -3,8 +3,6 @@ import Navbar from "@/components/dashboard/Navbar";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { SidebarProvider } from "@/context/sidebar-context";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { ROUTES } from "@/lib/lib";
 
 export const metadata: Metadata = {
   title: "ClickMap | Dashboard",
@@ -18,11 +16,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getUser();
-  if (!user) redirect(ROUTES.AUTH.LOGIN);
   return (
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar user={user} />
         <div className="flex flex-1 flex-col overflow-hidden">
           <Navbar />
           <main className="flex-1 overflow-y-auto p-6">{children}</main>
