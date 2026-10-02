@@ -1,4 +1,4 @@
-import { getUser } from "@/api/user/dal";
+import { getUser } from "@/api/user/user";
 import Navbar from "@/components/dashboard/Navbar";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { SidebarProvider } from "@/context/sidebar-context";

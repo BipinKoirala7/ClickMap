@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import QueryProvider from "@/providers/QueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,10 +17,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.className} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <Toaster richColors />
-        {children}
-      </body>
+      <QueryProvider>
+        <body className="flex h-full flex-col bg-background font-sans text-foreground">
+          {children}
+          <Toaster richColors position="bottom-right" />
+        </body>
+      </QueryProvider>
     </html>
   );
 }
