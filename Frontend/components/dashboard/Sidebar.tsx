@@ -56,7 +56,6 @@ export default function Sidebar(props: SidebarPropsT) {
       )}
     >
       <div>
-        {/* Logo — icon position fixed, only label collapses */}
         <Link href="/" className="flex items-center gap-2 px-5 py-5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
             <Link2 size={18} className="text-sidebar-primary-foreground" />
@@ -66,7 +65,6 @@ export default function Sidebar(props: SidebarPropsT) {
           </CollapsingLabel>
         </Link>
 
-        {/* Nav */}
         <div className="mt-2 px-4">
           <div
             className={cn(
@@ -108,9 +106,10 @@ export default function Sidebar(props: SidebarPropsT) {
       </div>
 
       {/* User footer — avatar position fixed, only text block collapses */}
-      <div className="flex items-center gap-3 border-t border-sidebar-border px-6 py-4">
+      <div className="flex items-center gap-3 border-t border-sidebar-border px-5 py-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-          AS
+          {user.name.split(" ")[0].charAt(0).toUpperCase() +
+            user.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
         </div>
         <CollapsingLabel collapsed={collapsed}>
           <div className="min-w-0">

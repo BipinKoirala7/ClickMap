@@ -73,22 +73,6 @@ export default function RegisterForm() {
       error: (err) =>
         err instanceof Error ? err.message : "Something went wrong!",
     });
-
-    // try {
-    //   const response = await register(parsedRegisterDetails.data);
-    //   console.log("Register response:", response);
-
-    //   toast.success(response.message);
-    //   router.push("/auth/login");
-    // } catch (e) {
-    //   console.log("Error", e);
-
-    //   if (e instanceof Error) {
-    //     toast.error(e.message);
-    //   } else {
-    //     toast.error("Something went wrong!");
-    //   }
-    // }
   };
 
   return (
