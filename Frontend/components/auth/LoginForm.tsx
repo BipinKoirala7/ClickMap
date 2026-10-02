@@ -38,22 +38,6 @@ export default function LoginForm() {
       error: (err) =>
         err instanceof Error ? err.message : "Something went wrong!",
     });
-
-    // try {
-    //   const response = await login(parsedLoginDetails.data);
-    //   console.log("Register response:", response);
-
-    //   toast.success(response.message);
-    //   router.push("/dashboard");
-    // } catch (e) {
-    //   console.log("Error", e);
-
-    //   if (e instanceof Error) {
-    //     toast.error(e.message);
-    //   } else {
-    //     toast.error("Something went wrong!");
-    //   }
-    // }
   };
 
   return (

@@ -1,6 +1,5 @@
 import axios, { AxiosError } from "axios";
 import config from "@/lib/config";
-import { toast } from "sonner";
 
 const api = axios.create({
   baseURL: config.API_URL,
@@ -26,7 +25,8 @@ api.interceptors.response.use(
     }
 
     if (error.response.status >= 500) {
-      toast.error("Something went wrong on our end. Please try again.");
+      // toast.error("Something went wrong on our end. Please try again.");
+      error.message = "Something went wrong on our end. Please try again.";
     }
 
     return Promise.reject(error);

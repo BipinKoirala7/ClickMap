@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelLeft, Search } from "lucide-react";
-import { useSidebar } from "@/lib/sidebar-context";
+import { useSidebar } from "@/context/sidebar-context";
 import Notification from "@/components/dashboard/Notification";
 
 export default function Navbar() {

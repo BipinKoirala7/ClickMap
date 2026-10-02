@@ -27,6 +27,19 @@ type PublicUserDto = {
   updatedAt: Date;
 };
 
+// Link
+
+type PublicLinkDto = {
+  id: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  title: string;
+  shortCode: string;
+  originalUrl: string;
+  expiresAt: Date;
+};
+
 // API Responses
 
 type RestAPIResponse<T> = {
@@ -38,6 +51,9 @@ type RestAPIResponse<T> = {
 
 type RegisterUserResponse = RestAPIResponse<void>;
 type LoginUserResponse = RestAPIResponse<void>;
+type GetUserResponse = RestAPIResponse<PublicUserDto>;
+
+type GetLinksResponse = RestAPIResponse<PublicLinkDto[]>;
 
 export type {
   PublicUserDto,
@@ -45,4 +61,7 @@ export type {
   RegisterUserResponse,
   LoginUserDto,
   LoginUserResponse,
+  GetUserResponse,
+  PublicLinkDto,
+  GetLinksResponse,
 };

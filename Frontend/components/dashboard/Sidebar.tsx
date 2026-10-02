@@ -4,8 +4,13 @@ import Link from "next/link";
 import { Link2, LayoutGrid, BarChart2, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import NextLink from "next/link";
-import { useSidebar } from "@/lib/sidebar-context";
+import { useSidebar } from "@/context/sidebar-context";
 import { cn } from "@/lib/utils";
+import { PublicUserDto } from "@/types";
+
+type SidebarPropsT = {
+  user: PublicUserDto;
+};
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutGrid },
@@ -37,7 +42,8 @@ function CollapsingLabel({
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar(props: SidebarPropsT) {
+  const { user } = props;
   const pathname = usePathname();
   const { collapsed } = useSidebar();
 
@@ -50,7 +56,6 @@ export default function Sidebar() {
       )}
     >
       <div>
-        {/* Logo — icon position fixed, only label collapses */}
         <Link href="/" className="flex items-center gap-2 px-5 py-5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
             <Link2 size={18} className="text-sidebar-primary-foreground" />
@@ -60,7 +65,6 @@ export default function Sidebar() {
           </CollapsingLabel>
         </Link>
 
-        {/* Nav */}
         <div className="mt-2 px-4">
           <div
             className={cn(
@@ -102,15 +106,16 @@ export default function Sidebar() {
       </div>
 
       {/* User footer — avatar position fixed, only text block collapses */}
-      <div className="flex items-center gap-3 border-t border-sidebar-border px-6 py-4">
+      <div className="flex items-center gap-3 border-t border-sidebar-border px-5 py-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-          AS
+          {user.name.split(" ")[0].charAt(0).toUpperCase() +
+            user.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
         </div>
         <CollapsingLabel collapsed={collapsed}>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Alex Stone</p>
+            <p className="truncate text-sm font-medium">{user.name}</p>
             <p className="truncate text-xs text-sidebar-foreground/50">
-              alex@clickmap.io
+              {user.email}
             </p>
           </div>
         </CollapsingLabel>

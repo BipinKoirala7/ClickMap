@@ -40,12 +40,12 @@ function clearAccessTokenCookieInResponse(res: Response): void {
 }
 
 function clearRefreshTokenCookieInResponse(res: Response): void {
-  res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+  res.clearCookie("refreshToken", { path: "/api/v1/auth/refresh" });
 }
 
 function clearCookiesInResponse(res: Response): void {
   res.clearCookie("accessToken", { path: "/" });
-  res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+  res.clearCookie("refreshToken", { path: "/api/v1/auth/refresh" });
 }
 
 export const cookiesService = {

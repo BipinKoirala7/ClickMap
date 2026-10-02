@@ -1,9 +1,14 @@
 const routes = {
   HOME: "/",
   AUTH: {
-    LOGIN: "/auth/login",
-    REGISTER: "/auth/register",
-    FORGOT_PASSWORD: "/auth/forgot-password",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    FORGOT_PASSWORD: "/forgot-password",
+  },
+  DASHBOARD: {
+    HOME: "/dashboard",
+    ANALYTICS: "/dashboard/analytics",
+    SETTINGS: "/dashboard/settings",
   },
 };
 
