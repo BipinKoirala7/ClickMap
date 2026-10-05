@@ -23,8 +23,8 @@ type PublicUserDto = {
   plan: UserPlan;
   isActive: boolean;
   isVerified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 };
 
 // Link
@@ -32,12 +32,12 @@ type PublicUserDto = {
 type PublicLinkDto = {
   id: string;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   title: string;
   shortCode: string;
   originalUrl: string;
-  expiresAt: Date;
+  expiresAt: string;
 };
 
 // API Responses
