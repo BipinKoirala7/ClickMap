@@ -14,6 +14,7 @@ import { pinoHttp } from "pino-http";
 import { logger } from "./lib/logger.ts";
 import cookieParser from "cookie-parser";
 import { apiRouter } from "./routes.ts";
+import redirectRouter from "./modules/redirect/redirect.routes.ts";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.get("/api-docs.json", (_, res) => {
   res.json(openApiDoc);
 });
 
+app.use("/", redirectRouter);
 app.use("/api/v1", apiRouter);
 
 app.use((_req, res) => {

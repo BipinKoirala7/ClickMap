@@ -5,7 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { buildTestApp } from "../testApp";
 import type {
-  CreateLinkDto,
+  CreateLinkInput,
   PublicLinkDto,
   UpdateLinkDto,
 } from "@/modules/links/links.schema";
@@ -23,10 +23,11 @@ const VALID_USER = {
   password: "SuperSecret123!",
 };
 
-const VALID_LINK_PAYLOAD: CreateLinkDto = {
+const VALID_LINK_PAYLOAD: CreateLinkInput = {
   shortCode: "abc123",
   originalUrl: "https://example.com",
   title: "Example Link",
+  expiresAt: new Date(Date.now() + 1000000).toISOString(), // 1000 seconds in the future
 };
 
 const ACCESS_TOKEN_TYPE = "ACCESS_TOKEN";

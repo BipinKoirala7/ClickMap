@@ -1,24 +1,18 @@
 import { describe, expect, it } from "vitest";
-
-// Adjust this import path to wherever these schemas are actually exported from.
 import {
   createLinkSchema,
   publicLinkSchema,
   updateLinkSchema,
-  type CreateLinkDto,
 } from "@/modules/links/links.schema.ts";
 
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
-
-const futureDate = new Date(Date.now() + 1000 * 60 * 60); // +1 hour
-const pastDate = new Date(Date.now() - 1000 * 60 * 60); // -1 hour
+const futureDate = new Date(Date.now() + 1000 * 60 * 60).toISOString(); // +1 hour
+const pastDate = new Date(Date.now() - 1000 * 60 * 60).toISOString(); // -1 hour
 
 const validCreateInput = {
   shortCode: "abc123",
   originalUrl: "https://example.com",
   title: "My Link",
+  expiresAt: futureDate,
 };
 
 const validSelectRow = {
@@ -27,7 +21,7 @@ const validSelectRow = {
   originalUrl: "https://example.com",
   title: "My Link",
   isActive: true,
-  expiresAt: futureDate,
+  expiresAt: new Date(futureDate),
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -53,7 +47,7 @@ describe("createLinkSchema", () => {
 
   describe("shortCode", () => {
     it("rejects a missing shortCode", () => {
-      const rest: CreateLinkDto = {
+      const rest = {
         ...validCreateInput,
         shortCode: undefined as unknown as string, // Force it to be undefined for the test
       };
@@ -83,7 +77,7 @@ describe("createLinkSchema", () => {
 
   describe("originalUrl", () => {
     it("rejects a missing originalUrl", () => {
-      const rest: CreateLinkDto = {
+      const rest = {
         ...validCreateInput,
         originalUrl: undefined as unknown as string, // Force it to be undefined for the test
       };
@@ -131,7 +125,7 @@ describe("createLinkSchema", () => {
 
   describe("title", () => {
     it("rejects a missing title", () => {
-      const rest: CreateLinkDto = {
+      const rest = {
         ...validCreateInput,
         title: undefined as unknown as string, // Force it to be undefined for the test
       };
@@ -186,17 +180,6 @@ describe("createLinkSchema", () => {
   });
 
   describe("expiresAt", () => {
-    it("is optional — omitting it succeeds", () => {
-      const result = createLinkSchema.safeParse(validCreateInput);
-      expect(result.success).toBe(true);
-      if (result.success) {
-        // Same as isActive: the DB-level $default (now + 30 days) is not
-        // replicated by the Zod schema, so an omitted expiresAt parses to
-        // undefined, not a computed date.
-        expect(result.data.expiresAt).toBeUndefined();
-      }
-    });
-
     it("rejects a date in the past", () => {
       const result = createLinkSchema.safeParse({
         ...validCreateInput,

@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv";
-import type { NewLink, UpdateLinkDto } from "./links.schema.ts";
+import type { NewLink, UpdateLinkDto } from "@/modules/links/links.schema.ts";
 import { db } from "@/db/database.ts";
 import { links } from "@/db/schema.ts";
 import { eq, and } from "drizzle-orm";
@@ -19,6 +19,12 @@ async function getUserLinks(userId: string) {
 async function getLink(linkId: string, userId: string) {
   return await db.query.links.findFirst({
     where: and(eq(links.id, linkId), eq(links.userId, userId)),
+  });
+}
+
+async function getLinkbyShortURL(shortCode: string) {
+  return await db.query.links.findFirst({
+    where: eq(links.shortCode, shortCode),
   });
 }
 
@@ -51,6 +57,7 @@ export const linkRepository = {
   createLink,
   getUserLinks,
   getLink,
+  getLinkbyShortURL,
   updateLink,
   activateLink,
   deactivateLink,

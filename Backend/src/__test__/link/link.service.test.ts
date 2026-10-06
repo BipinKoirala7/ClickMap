@@ -8,7 +8,7 @@ import {
 } from "@/errors/Errors";
 import { linkRepository } from "@/modules/links/links.repository";
 import {
-  type CreateLinkDto,
+  type CreateLinkInput,
   type PublicLinkDto,
   type UpdateLinkDto,
 } from "@/modules/links/links.schema";
@@ -19,10 +19,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/modules/links/links.repository.ts");
 vi.mock("@/modules/user/user.service.ts");
 
-const valid_link: CreateLinkDto = {
+const valid_link: CreateLinkInput = {
   shortCode: "abc123",
   originalUrl: "https://example.com",
   title: "Example Link",
+  expiresAt: new Date(Date.now() + 100000).toISOString(), // 100 seconds in the future
 };
 
 const userId = "user123";
@@ -47,6 +48,7 @@ describe("Create link", () => {
     expect(linkRepository.createLink).toHaveBeenCalledWith({
       userId,
       ...valid_link,
+      expiresAt: new Date(valid_link.expiresAt),
     });
   });
 
@@ -82,7 +84,7 @@ describe("Create link", () => {
     } as User);
 
     await expect(
-      linkService.createLink(userId, {} as PublicLinkDto),
+      linkService.createLink(userId, {} as CreateLinkInput),
     ).rejects.toThrow();
     expect(linkRepository.createLink).not.toHaveBeenCalled();
   });
@@ -101,6 +103,7 @@ describe("Create link", () => {
     expect(linkRepository.createLink).toHaveBeenCalledWith({
       userId,
       ...valid_link,
+      expiresAt: new Date(valid_link.expiresAt),
     });
   });
 });
