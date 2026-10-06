@@ -1,5 +1,5 @@
 import { configDotenv } from "dotenv";
-import type { NewLink, UpdateLinkDto } from "./links.schema.ts";
+import type { NewLink, UpdateLinkDto } from "@/modules/links/links.schema.ts";
 import { db } from "@/db/database.ts";
 import { links } from "@/db/schema.ts";
 import { eq, and } from "drizzle-orm";

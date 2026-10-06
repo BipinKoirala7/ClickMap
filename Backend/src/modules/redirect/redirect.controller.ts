@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { redirectService } from "./redirect.service";
+import { redirectService } from "@/modules/redirect/redirect.service";
 
 async function getLinkURLByShortUrl(
   req: Request<{ shortUrl: string }>,
@@ -11,7 +11,9 @@ async function getLinkURLByShortUrl(
   if (longUrl) {
     res.redirect(longUrl);
   } else {
-    res.status(404).send("URL not found");
+    res
+      .status(404)
+      .send("Something went wrong. Please check the URL and try again.");
   }
 }
 
