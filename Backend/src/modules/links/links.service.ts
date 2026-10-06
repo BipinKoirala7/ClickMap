@@ -16,7 +16,6 @@ import {
 import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 
-// TODO: Change the userId checker everywhere with this check
 async function createLink(userId: string | undefined, dto: CreateLinkDto) {
   if (!userId || userId.trim().length < 1) {
     throw new AuthenticationError();

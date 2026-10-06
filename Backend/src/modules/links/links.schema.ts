@@ -22,13 +22,13 @@ export const createLinkSchema = createInsertSchema(links, {
           .min(1, "Original URL must be at least 1 character long"),
       ),
   isActive: (schema) => schema.optional(),
-  expiresAt: (schema) =>
-    schema
-      .optional()
-      .refine(
-        (date) => date == null || date.getTime() > Date.now(),
-        "expiresAt must be in the future",
-      ),
+  expiresAt: z.iso
+    .datetime()
+    .transform((date) => (date ? new Date(date) : null))
+    .refine((date) => date == null || date.getTime() > Date.now(), {
+      message: "expiresAt must be in the future",
+    })
+    .optional(),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .openapi("CreateLink");

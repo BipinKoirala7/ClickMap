@@ -22,6 +22,12 @@ async function getLink(linkId: string, userId: string) {
   });
 }
 
+async function getLinkbyShortURL(shortCode: string, userId: string) {
+  return await db.query.links.findFirst({
+    where: and(eq(links.userId, userId), eq(links.shortCode, shortCode)),
+  });
+}
+
 async function updateLink(
   linkId: string,
   userId: string,
@@ -51,6 +57,7 @@ export const linkRepository = {
   createLink,
   getUserLinks,
   getLink,
+  getLinkbyShortURL,
   updateLink,
   activateLink,
   deactivateLink,
