@@ -24,11 +24,11 @@ export const createLinkSchema = createInsertSchema(links, {
   isActive: (schema) => schema.optional(),
   expiresAt: z.iso
     .datetime()
-    .transform((date) => (date ? new Date(date) : null))
+    .nonempty("Expires At must be a valid date")
+    .transform((date) => new Date(date))
     .refine((date) => date == null || date.getTime() > Date.now(), {
       message: "expiresAt must be in the future",
-    })
-    .optional(),
+    }),
 })
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .openapi("CreateLink");

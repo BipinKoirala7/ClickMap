@@ -3,11 +3,9 @@ import linkRouter from "@/modules/links/links.routes.ts";
 import userRouter from "@/modules/user/user.routes.ts";
 import authRouter from "@/modules/auth/auth.routes.ts";
 import analyticsRouter from "@/modules/analytics/analytics.routes.ts";
-import redirectRouter from "./modules/redirect/redirect.routes";
 
 const apiRouter = Router();
 
-apiRouter.use("/", redirectRouter);
 apiRouter.use("/user", userRouter);
 apiRouter.use("/link", linkRouter);
 apiRouter.use("/auth", authRouter);

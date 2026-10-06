@@ -22,9 +22,9 @@ async function getLink(linkId: string, userId: string) {
   });
 }
 
-async function getLinkbyShortURL(shortCode: string, userId: string) {
+async function getLinkbyShortURL(shortCode: string) {
   return await db.query.links.findFirst({
-    where: and(eq(links.userId, userId), eq(links.shortCode, shortCode)),
+    where: eq(links.shortCode, shortCode),
   });
 }
 
