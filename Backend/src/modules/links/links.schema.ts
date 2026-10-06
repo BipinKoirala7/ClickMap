@@ -50,13 +50,13 @@ export const updateLinkSchema = createUpdateSchema(links, {
     schema.trim().min(1, "Short code must be at least 1 character long"),
   title: (schema) =>
     schema.trim().min(1, "Title must be at least 1 character long"),
-  expiresAt: (schema) =>
-    schema
-      .optional()
-      .refine(
-        (date) => date == null || date.getTime() > Date.now(),
-        "expiresAt must be in the future",
-      ),
+  expiresAt: z.iso
+    .datetime()
+    .transform((date) => new Date(date))
+    .refine((date) => date == null || date.getTime() > Date.now(), {
+      message: "expiresAt must be in the future",
+    })
+    .optional(),
 })
   .pick({ shortCode: true, originalUrl: true, title: true, expiresAt: true })
   .refine((data) => Object.keys(data).length > 0, {
@@ -64,7 +64,8 @@ export const updateLinkSchema = createUpdateSchema(links, {
   })
   .openapi("UpdateLink");
 
-export type CreateLinkDto = z.infer<typeof createLinkSchema>;
+export type CreateLinkInput = z.input<typeof createLinkSchema>;
+export type CreateLinkDto = z.output<typeof createLinkSchema>;
 export type PublicLinkDto = z.infer<typeof publicLinkSchema>;
 export type UpdateLinkDto = z.infer<typeof updateLinkSchema>;
 
