@@ -3,6 +3,7 @@ import {
   LinkAlreadyActiveError,
   LinkAlreadyDeactivatedError,
   LinkNotFoundError,
+  UserNotActiveError,
 } from "@/errors/Errors.ts";
 import {
   createLinkSchema,
@@ -15,6 +16,7 @@ import {
 } from "./links.schema.ts";
 import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
+import { logger } from "@/lib/logger.ts";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!userId || userId.trim().length < 1) {
@@ -22,6 +24,12 @@ async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   }
 
   const user = await userService.getById(userId);
+
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
   const link = createLinkSchema.parse(dto);
   const newLink: NewLink = {
     userId: user.id,
@@ -34,9 +42,13 @@ async function createLink(userId: string | undefined, dto: CreateLinkInput) {
 async function getUserLinks(userId: string | undefined) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
-  const links = await linkRepository.getUserLinks(user.id);
 
-  console.log(links);
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
+  const links = await linkRepository.getUserLinks(user.id);
 
   const publicLinks: PublicLinkDto[] = [];
   for (const link of links) {
@@ -49,6 +61,12 @@ async function getUserLinks(userId: string | undefined) {
 async function getLinkInfo(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
+
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -62,6 +80,12 @@ async function updateLink(
 ) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
+
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -73,6 +97,11 @@ async function updateLink(
 async function activateLink(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
@@ -83,6 +112,11 @@ async function activateLink(linkId: string, userId: string | undefined) {
 async function deactivateLink(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length < 1) throw new AuthenticationError();
   const user = await userService.getById(userId);
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();

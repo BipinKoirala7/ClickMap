@@ -38,6 +38,7 @@ describe("Create link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
 
     // Act
@@ -94,6 +95,7 @@ describe("Create link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.createLink).mockRejectedValue(error);
 
@@ -136,6 +138,7 @@ describe("Get user links", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getUserLinks).mockResolvedValue(links as any);
 
@@ -186,6 +189,7 @@ describe("Get user links", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getUserLinks).mockRejectedValue(error);
 
@@ -214,6 +218,7 @@ describe("Get link info", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(link as any);
 
@@ -263,6 +268,7 @@ describe("Get link info", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(null as any);
 
@@ -276,6 +282,7 @@ describe("Get link info", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockRejectedValue(error);
 
@@ -332,6 +339,7 @@ describe("Update link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(null as any);
 
@@ -346,6 +354,7 @@ describe("Update link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockRejectedValue(error);
 
@@ -378,6 +387,7 @@ describe("Update link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -401,6 +411,7 @@ describe("Update link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(existingLink);
     vi.mocked(linkRepository.updateLink).mockResolvedValue(updatedLink);
@@ -466,6 +477,7 @@ describe("Activate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(null as any);
 
@@ -480,6 +492,7 @@ describe("Activate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockRejectedValue(error);
 
@@ -493,6 +506,7 @@ describe("Activate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -510,6 +524,7 @@ describe("Activate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -528,6 +543,7 @@ describe("Activate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -588,6 +604,7 @@ describe("Deactivate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(null as any);
 
@@ -602,6 +619,7 @@ describe("Deactivate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockRejectedValue(error);
 
@@ -615,6 +633,7 @@ describe("Deactivate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -632,6 +651,7 @@ describe("Deactivate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
@@ -650,6 +670,7 @@ describe("Deactivate link", () => {
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
+      isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue({
       id: linkId,
