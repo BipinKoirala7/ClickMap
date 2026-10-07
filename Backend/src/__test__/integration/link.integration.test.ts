@@ -316,11 +316,15 @@ describe("Link Creation Integration Test", () => {
       const res = await request(server)
         .post(LINK_CREATE_PATH)
         .set("Cookie", setCookie)
-        .send({ shortCode: "abc123", title: "Example Link" });
+        .send({
+          shortCode: "abc123",
+          title: "Example Link",
+          expiresAt: new Date(Date.now() + 1000000).toISOString(),
+        });
 
       expect(res.status).toBe(422);
       expect(res.body.success).toBe(false);
-      expect(res.body.message).toMatch(/valid information/i);
+      expect(res.body.message).toMatch("Please send valid information");
     });
 
     it("returns 422 when originalUrl is not a valid URL", async () => {

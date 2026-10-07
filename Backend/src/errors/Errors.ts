@@ -71,3 +71,17 @@ export class LinkAlreadyDeactivatedError extends AppError {
     super(message, 400);
   }
 }
+
+export class InvalidLinkError extends AppError {
+  constructor(message = "Please send valid information") {
+    super(message, 422);
+  }
+}
+
+/* Analytics Related Errors */
+
+export class InvalidEventError extends AppError {
+  constructor(message = "Invalid Event") {
+    super(message, 400);
+  }
+}

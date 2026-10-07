@@ -18,6 +18,7 @@ import redirectRouter from "./modules/redirect/redirect.routes.ts";
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: config.FRONTEND_URL,

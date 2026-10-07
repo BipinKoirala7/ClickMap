@@ -72,7 +72,10 @@ export const clickEvents = p.pgTable("click_events", {
     .varchar()
     .primaryKey()
     .$default(() => nanoid()),
-  linkId: p.varchar().references(() => links.id),
+  linkId: p
+    .varchar()
+    .references(() => links.id)
+    .notNull(),
   clickedAt: p.timestamp().notNull().defaultNow(),
   referer: p.varchar(),
   ip: p.varchar(),
@@ -83,5 +86,5 @@ export const clickEvents = p.pgTable("click_events", {
   browserVersion: p.varchar(),
   os: p.varchar(),
   device: p.varchar(),
-  isBot: p.boolean(),
+  isBot: p.boolean().notNull().default(false),
 });
