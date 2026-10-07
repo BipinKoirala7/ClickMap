@@ -1,8 +1,6 @@
 import { userRepository } from "@/modules/user/user.repository.ts";
 
 import {
-  UserAlreadyDeactivatedError,
-  UserAlreadyActiveError,
   AuthenticationError,
   UserNotFoundError,
   UserNotActiveError,
@@ -121,43 +119,6 @@ async function logout(req: Request, res: Response) {
   logger.debug("User logged out, cookies cleared");
 }
 
-async function activateUserStatus(id: string | undefined) {
-  if (id == undefined) {
-    logger.warn("activateUserStatus called with undefined ID");
-    throw new AuthenticationError("User ID is undefined");
-  }
-
-  const user = await userService.getById(id);
-  if (user.isActive) {
-    logger.warn({ userId: id }, "Attempted to activate an already active user");
-    throw new UserAlreadyActiveError("User is already active");
-  }
-
-  const result = await userRepository.updateUserStatus(id, true);
-  logger.info({ userId: id }, "User activated");
-  return result;
-}
-
-async function deactivateUserStatus(id: string | undefined) {
-  if (id == undefined) {
-    logger.warn("deactivateUserStatus called with undefined ID");
-    throw new AuthenticationError("User ID is undefined");
-  }
-
-  const user = await userService.getById(id);
-  if (!user.isActive) {
-    logger.warn(
-      { userId: id },
-      "Attempted to deactivate an already deactivated user",
-    );
-    throw new UserAlreadyDeactivatedError("User is already deactivated");
-  }
-
-  const result = await userRepository.updateUserStatus(id, false);
-  logger.info({ userId: id }, "User deactivated");
-  return result;
-}
-
 // Helper Functions
 async function setActiveRefreshToken(refreshTokenInfo: ActiveRefreshTokenDto) {
   const info = activeRefreshTokenSchema.parse(refreshTokenInfo);
@@ -170,7 +131,5 @@ export const authService = {
   loginUser,
   refreshToken,
   logout,
-  activateUserStatus,
-  deactivateUserStatus,
   setActiveRefreshToken,
 };

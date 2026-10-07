@@ -48,7 +48,7 @@ async function deactivateUser(id: string) {
   await db.transaction(async (tx) => {
     await tx.update(users).set({ isActive: false }).where(eq(users.id, id));
 
-    await tx.update(links).set({ isActive: false }).where(eq(users.id, id));
+    await tx.update(links).set({ isActive: false }).where(eq(links.userId, id));
   });
 }
 

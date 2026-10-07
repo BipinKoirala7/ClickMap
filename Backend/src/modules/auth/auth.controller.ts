@@ -30,35 +30,9 @@ async function logoutController(req: Request, res: Response) {
     .json(RestApiResponse.success(200, "User Logged Out Successfully", null));
 }
 
-async function deactivateUserController(req: Request, res: Response) {
-  const userId = req.userId;
-  await authService.deactivateUserStatus(userId);
-  return res
-    .status(200)
-    .json(
-      RestApiResponse.success(
-        200,
-        "User Account DeActivated Successfully",
-        null,
-      ),
-    );
-}
-
-async function activateUserController(req: Request, res: Response) {
-  const userId = req.userId;
-  await authService.activateUserStatus(userId);
-  return res
-    .status(200)
-    .json(
-      RestApiResponse.success(200, "User Account Activated Successfully", null),
-    );
-}
-
 export const authController = {
   registerController,
   loginController,
   refreshTokenController,
   logoutController,
-  deactivateUserController,
-  activateUserController,
 };

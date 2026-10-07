@@ -19,7 +19,7 @@ import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
-  if (!userId || userId.trim().length < 1) {
+  if (!userId || userId.trim().length == 0) {
     throw new AuthenticationError();
   }
 
@@ -40,7 +40,7 @@ async function createLink(userId: string | undefined, dto: CreateLinkInput) {
 }
 
 async function getUserLinks(userId: string | undefined) {
-  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  if (!userId || userId.trim().length == 0) throw new AuthenticationError();
   const user = await userService.getById(userId);
 
   if (!user.isActive) {
@@ -59,7 +59,7 @@ async function getUserLinks(userId: string | undefined) {
 }
 
 async function getLinkInfo(linkId: string, userId: string | undefined) {
-  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  if (!userId || userId.trim().length == 0) throw new AuthenticationError();
   const user = await userService.getById(userId);
 
   if (!user.isActive) {
@@ -78,7 +78,7 @@ async function updateLink(
   userId: string | undefined,
   linkData: UpdateLinkDto,
 ) {
-  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  if (!userId || userId.trim().length == 0) throw new AuthenticationError();
   const user = await userService.getById(userId);
 
   if (!user.isActive) {
@@ -95,7 +95,7 @@ async function updateLink(
 }
 
 async function activateLink(linkId: string, userId: string | undefined) {
-  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  if (!userId || userId.trim().length == 0) throw new AuthenticationError();
   const user = await userService.getById(userId);
   if (!user.isActive) {
     logger.warn("User is not active");
@@ -110,7 +110,7 @@ async function activateLink(linkId: string, userId: string | undefined) {
 }
 
 async function deactivateLink(linkId: string, userId: string | undefined) {
-  if (!userId || userId.trim().length < 1) throw new AuthenticationError();
+  if (!userId || userId.trim().length == 0) throw new AuthenticationError();
   const user = await userService.getById(userId);
   if (!user.isActive) {
     logger.warn("User is not active");

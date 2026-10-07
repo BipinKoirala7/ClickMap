@@ -12,12 +12,13 @@ import {
   type UpdateUserDto,
 } from "@/modules/user/user.schema.ts";
 import type { User } from "@/modules/auth/auth.schema.ts";
+import { userStatusAction } from "@/types/types";
+import { logger } from "@/lib/logger";
 
 async function getUserById(id: string | undefined): Promise<PublicUserDto> {
-  if (!id || id.length < 1) throw new AuthenticationError();
+  if (!id || id.trim().length == 0) throw new AuthenticationError();
   const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
-
   return publicUserSchema.parse(user);
 }
 
@@ -25,7 +26,7 @@ async function updateUser(
   id: string | undefined,
   updatedUserInfo: UpdateUserDto,
 ): Promise<void> {
-  if (!id || id.length < 1) throw new AuthenticationError();
+  if (!id || id.trim().length == 0) throw new AuthenticationError();
 
   const existingUser = await userRepository.findById(id);
   if (!existingUser) throw new UserNotFoundError();
@@ -34,33 +35,30 @@ async function updateUser(
   await userRepository.updateUserById(id, info);
 }
 
-async function deactivateUser(id: string | undefined): Promise<void> {
-  if (!id || id.length < 1) throw new AuthenticationError();
+async function updateUserStatus(
+  id: string | undefined,
+  action: userStatusAction,
+) {
+  if (!id || id.trim().length == 0) {
+    logger.warn("activateUserStatus called with undefined ID");
+    throw new AuthenticationError();
+  }
 
-  const user = await userRepository.findById(id);
-  if (!user) throw new UserNotFoundError();
+  const user = await getById(id);
 
-  if (user.isActive) throw new UserAlreadyDeactivatedError();
-
-  await userRepository.deactivateUser(id);
-}
-
-async function activateUser(id: string | undefined): Promise<void> {
-  if (!id || id.length < 1) throw new AuthenticationError();
-
-  const user = await userRepository.findById(id);
-  if (!user) throw new UserNotFoundError();
-
-  if (!user.isActive) throw new UserAlreadyActiveError();
-
-  await userRepository.activateUser(id);
+  if (action === userStatusAction.DEACTIVATE) {
+    if (user.isActive) throw new UserAlreadyDeactivatedError();
+    await userRepository.deactivateUser(id);
+  } else {
+    if (!user.isActive) throw new UserAlreadyActiveError();
+    await userRepository.activateUser(id);
+  }
 }
 
 /* Only used for internal purposes */
 async function getById(id: string): Promise<User> {
   const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
-
   return user;
 }
 
@@ -74,8 +72,7 @@ async function getByEmail(email: string): Promise<User> {
 export const userService = {
   getUserById,
   updateUser,
-  activateUser,
-  deactivateUser,
+  updateUserStatus,
   getById,
   getByEmail,
 };
