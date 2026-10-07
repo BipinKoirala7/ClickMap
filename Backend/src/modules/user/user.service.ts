@@ -47,10 +47,10 @@ async function updateUserStatus(
   const user = await getById(id);
 
   if (action === userStatusAction.DEACTIVATE) {
-    if (user.isActive) throw new UserAlreadyDeactivatedError();
+    if (!user.isActive) throw new UserAlreadyDeactivatedError();
     await userRepository.deactivateUser(id);
   } else {
-    if (!user.isActive) throw new UserAlreadyActiveError();
+    if (user.isActive) throw new UserAlreadyActiveError();
     await userRepository.activateUser(id);
   }
 }

@@ -1,9 +1,6 @@
 import { Router } from "express";
 import { authController } from "./auth.controller.ts";
-import {
-  authenticate,
-  authenticateRefreshToken,
-} from "@/middleware/authenticate.ts";
+import { authenticateRefreshToken } from "@/middleware/authenticate.ts";
 
 const authRouter = Router();
 
@@ -23,18 +20,6 @@ authRouter.post(
   "/logout",
   authenticateRefreshToken,
   authController.logoutController,
-);
-
-// Access Token validation
-authRouter.post(
-  "/activate",
-  authenticate,
-  authController.activateUserController,
-);
-authRouter.post(
-  "/deactivate",
-  authenticate,
-  authController.deactivateUserController,
 );
 
 export default authRouter;
