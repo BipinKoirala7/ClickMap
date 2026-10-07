@@ -1,4 +1,9 @@
-import { AuthenticationError, UserNotFoundError } from "@/errors/Errors.ts";
+import {
+  AuthenticationError,
+  UserAlreadyActiveError,
+  UserAlreadyDeactivatedError,
+  UserNotFoundError,
+} from "@/errors/Errors.ts";
 import { userRepository } from "./user.repository.ts";
 import {
   publicUserSchema,
@@ -29,6 +34,28 @@ async function updateUser(
   await userRepository.updateUserById(id, info);
 }
 
+async function deactivateUser(id: string | undefined): Promise<void> {
+  if (!id || id.length < 1) throw new AuthenticationError();
+
+  const user = await userRepository.findById(id);
+  if (!user) throw new UserNotFoundError();
+
+  if (user.isActive) throw new UserAlreadyDeactivatedError();
+
+  await userRepository.updateUserStatus(id, false);
+}
+
+async function activateUser(id: string | undefined): Promise<void> {
+  if (!id || id.length < 1) throw new AuthenticationError();
+
+  const user = await userRepository.findById(id);
+  if (!user) throw new UserNotFoundError();
+
+  if (!user.isActive) throw new UserAlreadyActiveError();
+
+  await userRepository.updateUserStatus(id, true);
+}
+
 /* Only used for internal purposes */
 async function getById(id: string): Promise<User> {
   const user = await userRepository.findById(id);
@@ -47,6 +74,8 @@ async function getByEmail(email: string): Promise<User> {
 export const userService = {
   getUserById,
   updateUser,
+  activateUser,
+  deactivateUser,
   getById,
   getByEmail,
 };
