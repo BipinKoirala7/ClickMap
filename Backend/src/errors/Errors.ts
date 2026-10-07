@@ -71,3 +71,17 @@ export class LinkAlreadyDeactivatedError extends AppError {
     super(message, 400);
   }
 }
+
+export class InvalidLinkError extends AppError {
+  constructor(message = "Invalid Link Data") {
+    super(message, 400);
+  }
+}
+
+/* Analytics Related Errors */
+
+export class InvalidEventError extends AppError {
+  constructor(message = "Invalid Event") {
+    super(message, 400);
+  }
+}

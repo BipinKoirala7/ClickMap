@@ -1,5 +1,6 @@
 import {
   AuthenticationError,
+  InvalidLinkError,
   LinkAlreadyActiveError,
   LinkAlreadyDeactivatedError,
   LinkNotFoundError,
@@ -30,10 +31,15 @@ async function createLink(userId: string | undefined, dto: CreateLinkInput) {
     throw new UserNotActiveError();
   }
 
-  const link = createLinkSchema.parse(dto);
+  const link = createLinkSchema.safeParse(dto);
+  if (!link.success) {
+    logger.error("Invalid link data provided");
+    logger.error(link.error.message);
+    throw new InvalidLinkError(link.error.message);
+  }
   const newLink: NewLink = {
     userId: user.id,
-    ...link,
+    ...link.data,
   };
 
   await linkRepository.createLink(newLink);
