@@ -5,6 +5,7 @@ import {
   UserAlreadyActiveError,
   AuthenticationError,
   UserNotFoundError,
+  UserNotActiveError,
 } from "@/errors/Errors.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import {
@@ -91,6 +92,11 @@ async function refreshToken(req: Request, res: Response) {
 
   const userId = await jwtService.verifyRefreshToken(refreshToken);
   const user = await userService.getById(userId);
+
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
 
   const newRefreshToken = await jwtService.createRefreshToken(user.id);
   const newAccessToken = await jwtService.createAccessToken(user);

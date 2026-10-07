@@ -187,12 +187,6 @@ describe("Link Creation Integration Test", () => {
     });
   });
 
-  // ---------------------------------------------------------------------
-  // jose-level verification failures. These are NOT AppError instances,
-  // so they hit errorHandler's `instanceof JOSEError` branch instead —
-  // note the message is "...session expired..." for all sub-cases,
-  // including malformed tokens, per the current errorHandler code.
-  // ---------------------------------------------------------------------
   describe("when the access token fails jose verification", () => {
     it("returns 401 with a non-JWT string (JWTInvalid)", async () => {
       const res = await request(server)
