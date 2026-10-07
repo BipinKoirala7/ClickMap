@@ -1,5 +1,5 @@
 import { db } from "@/db/database.ts";
-import { users } from "@/db/schema.ts";
+import { links, users } from "@/db/schema.ts";
 import { eq } from "drizzle-orm";
 import type { UpdateUserDto } from "./user.schema.ts";
 import type { NewUser } from "../auth/auth.schema.ts";
@@ -41,14 +41,19 @@ async function findByEmail(email: string) {
 }
 
 async function updateUserById(id: string, { name, userName }: UpdateUserDto) {
-  return await db.update(users).set({ name, userName }).where(eq(users.id, id));
+  await db.update(users).set({ name, userName }).where(eq(users.id, id));
 }
 
-async function updateUserStatus(id: string, isActive: boolean) {
-  return await db
-    .update(users)
-    .set({ isActive: isActive })
-    .where(eq(users.id, id));
+async function deactivateUser(id: string) {
+  await db.transaction(async (tx) => {
+    await tx.update(users).set({ isActive: false }).where(eq(users.id, id));
+
+    await tx.update(links).set({ isActive: false }).where(eq(links.userId, id));
+  });
+}
+
+async function activateUser(id: string) {
+  await db.update(users).set({ isActive: true }).where(eq(users.id, id));
 }
 
 export const userRepository = {
@@ -56,5 +61,6 @@ export const userRepository = {
   findById,
   findByEmail,
   updateUserById,
-  updateUserStatus,
+  deactivateUser,
+  activateUser,
 };
