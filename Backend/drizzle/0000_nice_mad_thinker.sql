@@ -11,7 +11,7 @@ CREATE TABLE "active_refresh_tokens" (
 --> statement-breakpoint
 CREATE TABLE "click_events" (
 	"id" varchar PRIMARY KEY NOT NULL,
-	"linkId" varchar,
+	"linkId" varchar NOT NULL,
 	"clickedAt" timestamp DEFAULT now() NOT NULL,
 	"referer" varchar,
 	"ip" varchar,
@@ -22,15 +22,15 @@ CREATE TABLE "click_events" (
 	"browserVersion" varchar,
 	"os" varchar,
 	"device" varchar,
-	"isBot" boolean
+	"isBot" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "links" (
 	"id" varchar PRIMARY KEY NOT NULL,
-	"shortCode" varchar NOT NULL,
+	"shortCode" varchar(100) NOT NULL,
 	"originalUrl" text NOT NULL,
 	"userId" varchar NOT NULL,
-	"title" varchar NOT NULL,
+	"title" varchar(255) NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
 	"expiresAt" timestamp NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
@@ -42,8 +42,8 @@ CREATE TABLE "users" (
 	"id" varchar PRIMARY KEY NOT NULL,
 	"email" varchar(255) NOT NULL,
 	"password" varchar(255) NOT NULL,
-	"name" varchar(100) NOT NULL,
-	"user_name" varchar(100) NOT NULL,
+	"name" varchar(50) NOT NULL,
+	"user_name" varchar(50) NOT NULL,
 	"plan" "plan" DEFAULT 'free' NOT NULL,
 	"isActive" boolean DEFAULT true NOT NULL,
 	"isVerified" boolean DEFAULT false NOT NULL,

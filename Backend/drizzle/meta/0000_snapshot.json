@@ -1,5 +1,5 @@
 {
-  "id": "141b38f3-4e85-4968-af35-3d142004f6a2",
+  "id": "8bf40e51-0122-4420-ba32-74c16d460b8a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -91,7 +91,7 @@
           "name": "linkId",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "clickedAt": {
           "name": "clickedAt",
@@ -158,7 +158,8 @@
           "name": "isBot",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -195,7 +196,7 @@
         },
         "shortCode": {
           "name": "shortCode",
-          "type": "varchar",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
         },
@@ -213,13 +214,7 @@
         },
         "title": {
           "name": "title",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "isCustomCode": {
-          "name": "isCustomCode",
-          "type": "boolean",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
@@ -305,13 +300,13 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(100)",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
         },
         "user_name": {
           "name": "user_name",
-          "type": "varchar(100)",
+          "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
         },

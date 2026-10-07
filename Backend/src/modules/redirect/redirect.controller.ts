@@ -4,6 +4,7 @@ import type { CreateClickEventInput } from "../analytics/analytics.schema";
 import analyticsService from "../analytics/analytics.service";
 import { isbot } from "isbot";
 import { UAParser } from "ua-parser-js";
+import { lookupGeo } from "@/lib/geo";
 
 async function getLinkURLByShortUrl(
   req: Request<{ shortUrl: string }>,
@@ -15,6 +16,7 @@ async function getLinkURLByShortUrl(
   if (link) {
     const ua = req.headers["user-agent"] ?? null;
     const parsed = ua ? new UAParser(ua).getResult() : null;
+    const { country, city } = lookupGeo(req.ip);
 
     const event: CreateClickEventInput = {
       linkId: link.id,
@@ -27,11 +29,13 @@ async function getLinkURLByShortUrl(
       os: parsed?.os.name ?? null,
       device: parsed?.device.type ?? null,
       isBot: ua ? isbot(ua) : false,
-      country, // from GeoIP lookup on ip
+      country,
       city,
     };
 
-    await analyticsService.createEvent(event);
+    analyticsService
+      .createEvent(event)
+      .catch((err) => console.log("Error: ", err));
 
     res.redirect(link.originalUrl);
   } else {
