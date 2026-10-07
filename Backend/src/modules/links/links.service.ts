@@ -35,7 +35,7 @@ async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!link.success) {
     logger.error("Invalid link data provided");
     logger.error(link.error.message);
-    throw new InvalidLinkError(link.error.message);
+    throw new InvalidLinkError();
   }
   const newLink: NewLink = {
     userId: user.id,

@@ -1,5 +1,6 @@
 import {
   type CreateLinkDto,
+  type CreateLinkInput,
   type PublicLinkDto,
 } from "@/modules/links/links.schema";
 import type TestAgent from "supertest/lib/agent";
@@ -43,10 +44,11 @@ beforeEach(() => {
 });
 
 const LINK_CREATE_PATH = "/api/v1/link";
-const valid_link: CreateLinkDto = {
+const valid_link: CreateLinkInput = {
   shortCode: "abc123",
   originalUrl: "https://example.com",
   title: "Example Link",
+  expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
   isActive: true,
 };
 

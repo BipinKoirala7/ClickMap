@@ -5,13 +5,17 @@ import analyticsService from "../analytics/analytics.service";
 import { isbot } from "isbot";
 import { UAParser } from "ua-parser-js";
 import { lookupGeo } from "@/lib/geo";
+import { logger } from "@/lib/logger";
 
-async function getLinkURLByShortUrl(
-  req: Request<{ shortUrl: string }>,
+async function getLinkURLByShortCode(
+  req: Request<{ shortCode: string }>,
   res: Response,
 ) {
-  const { shortUrl } = req.params;
-  const link = await redirectService.getLinkURLByShortUrl(shortUrl);
+  const { shortCode } = req.params;
+  const link = await redirectService.getLinkURLByShortUrl(shortCode);
+
+  logger.info("Fetched Link");
+  logger.info(link);
 
   if (link) {
     const ua = req.headers["user-agent"] ?? null;
@@ -46,5 +50,5 @@ async function getLinkURLByShortUrl(
 }
 
 export const redirectController = {
-  getLinkURLByShortUrl,
+  getLinkURLByShortCode,
 };

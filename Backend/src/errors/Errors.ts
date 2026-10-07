@@ -73,8 +73,8 @@ export class LinkAlreadyDeactivatedError extends AppError {
 }
 
 export class InvalidLinkError extends AppError {
-  constructor(message = "Invalid Link Data") {
-    super(message, 400);
+  constructor(message = "Please send valid information") {
+    super(message, 422);
   }
 }
 
