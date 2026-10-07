@@ -5,7 +5,7 @@ async function getLinkURLByShortUrl(shortUrl: string) {
   if (!link || !link.isActive) return null;
   if (new Date() > link.expiresAt) return null;
 
-  return link.originalUrl;
+  return link;
 }
 
 export const redirectService = {
