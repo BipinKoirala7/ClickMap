@@ -4,14 +4,14 @@ import {
   UserAlreadyDeactivatedError,
   UserNotFoundError,
 } from "@/errors/Errors.ts";
-import { userRepository } from "./user.repository.ts";
+import { userRepository } from "@/modules/user/user.repository.ts";
 import {
   publicUserSchema,
   updateUserSchema,
   type PublicUserDto,
   type UpdateUserDto,
-} from "./user.schema.ts";
-import type { User } from "../auth/auth.schema.ts";
+} from "@/modules/user/user.schema.ts";
+import type { User } from "@/modules/auth/auth.schema.ts";
 
 async function getUserById(id: string | undefined): Promise<PublicUserDto> {
   if (!id || id.length < 1) throw new AuthenticationError();

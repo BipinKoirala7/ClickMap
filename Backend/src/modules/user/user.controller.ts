@@ -1,7 +1,7 @@
 import RestApiResponse from "@/types/RestApiResponse.ts";
 import { type Request, type Response } from "express";
-import { type PublicUserDto } from "./user.schema.ts";
-import { userService } from "./user.service.ts";
+import { type PublicUserDto } from "@/modules/user/user.schema.ts";
+import { userService } from "@/modules/user/user.service.ts";
 
 async function getUserController(req: Request, res: Response) {
   const id = req.userId;
