@@ -42,7 +42,7 @@ async function deactivateUser(id: string | undefined): Promise<void> {
 
   if (user.isActive) throw new UserAlreadyDeactivatedError();
 
-  await userRepository.updateUserStatus(id, false);
+  await userRepository.deactivateUser(id);
 }
 
 async function activateUser(id: string | undefined): Promise<void> {
@@ -53,7 +53,7 @@ async function activateUser(id: string | undefined): Promise<void> {
 
   if (!user.isActive) throw new UserAlreadyActiveError();
 
-  await userRepository.updateUserStatus(id, true);
+  await userRepository.activateUser(id);
 }
 
 /* Only used for internal purposes */
