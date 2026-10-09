@@ -9,6 +9,7 @@ const envSchema = z.object({
 
   // Redis configuration
   REDIS_URL: z.string().nonempty().default("redis://localhost:6379"),
+  REDIS_TTL: z.coerce.number().nonnegative().default(3600),
 
   // Database configuration
   DATABASE_URL: z.string().nonempty().default(""),
