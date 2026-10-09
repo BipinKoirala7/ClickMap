@@ -6,12 +6,13 @@ import type { Link } from "../links/links.schema";
 
 async function getLinkURLByShortCode(shortCode: string) {
   const cached = await readRedirectCache(shortCode);
+  logger.info({ cached }, "Redis cached link");
   if (cached) return isRedirectable(cached) ? cached : null;
 
   const link = await linkRepository.getLinkbyShortCode(shortCode);
-  if (!link || isRedirectable(link)) return null;
+  if (!link || !isRedirectable(link)) return null;
 
-  createRedirectCache(link.shortCode, link);
+  await createRedirectCache(link.shortCode, link);
   return link;
 }
 

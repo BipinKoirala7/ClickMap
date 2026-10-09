@@ -12,7 +12,7 @@ import {
   type CreateLinkInput,
   type NewLink,
   type PublicLinkDto,
-  type UpdateLinkDto,
+  type UpdateLinkInput,
 } from "@/modules/links/links.schema.ts";
 import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
@@ -74,7 +74,7 @@ async function getLinkInfo(linkId: string, userId: string | undefined) {
 async function updateLink(
   linkId: string,
   userId: string | undefined,
-  linkData: UpdateLinkDto,
+  linkData: UpdateLinkInput,
 ) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
 
