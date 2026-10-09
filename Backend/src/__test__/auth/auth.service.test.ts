@@ -126,10 +126,16 @@ describe("Register User", () => {
 describe("Login User", () => {
   const mockUser: User = {
     id: "user-123",
+    name: "Test User",
+    userName: "test_user",
     email: "test@example.com",
     password: "Hashed1password",
+    plan: "free",
     isActive: true,
-  } as User;
+    isVerified: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   const loginData = {
     email: "test@example.com",
