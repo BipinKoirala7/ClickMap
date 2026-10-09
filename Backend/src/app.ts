@@ -4,19 +4,22 @@ import express, { type Request } from "express";
 import cors from "cors";
 
 import swaggerUi from "swagger-ui-express";
-import { generateOpenApiDoc } from "./openapi/generate.ts";
-import { config } from "./config/config.ts";
-import { errorHandler } from "./errors/errorHandler.ts";
-import RestApiResponse from "./types/RestApiResponse.ts";
+import { generateOpenApiDoc } from "@/openapi/generate.ts";
+import { config } from "@/config/config.ts";
+import { errorHandler } from "@/errors/errorHandler.ts";
+import RestApiResponse from "@/types/RestApiResponse.ts";
 import morgan from "morgan";
 import { nanoid } from "nanoid";
 import { pinoHttp } from "pino-http";
-import { logger } from "./lib/logger.ts";
+import { logger } from "@/lib/logger.ts";
 import cookieParser from "cookie-parser";
-import { apiRouter } from "./routes.ts";
-import redirectRouter from "./modules/redirect/redirect.routes.ts";
+import { apiRouter } from "@/routes.ts";
+import redirectRouter from "@/modules/redirect/redirect.routes.ts";
+import { redisConnect } from "@/lib/redisConnect.ts";
 
 const app = express();
+
+await redisConnect();
 
 app.set("trust proxy", 1);
 app.use(
