@@ -67,6 +67,7 @@ export const updateLinkSchema = createUpdateSchema(links, {
 export type CreateLinkInput = z.input<typeof createLinkSchema>;
 export type CreateLinkDto = z.output<typeof createLinkSchema>;
 export type PublicLinkDto = z.infer<typeof publicLinkSchema>;
+export type UpdateLinkInput = z.input<typeof updateLinkSchema>;
 export type UpdateLinkDto = z.infer<typeof updateLinkSchema>;
 
 export type Link = typeof links.$inferSelect;

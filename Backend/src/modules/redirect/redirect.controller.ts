@@ -12,7 +12,7 @@ async function getLinkURLByShortCode(
   res: Response,
 ) {
   const { shortCode } = req.params;
-  const link = await redirectService.getLinkURLByShortUrl(shortCode);
+  const link = await redirectService.getLinkURLByShortCode(shortCode);
 
   logger.info("Fetched Link");
   logger.info(link);

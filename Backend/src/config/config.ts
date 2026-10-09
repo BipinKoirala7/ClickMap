@@ -7,6 +7,10 @@ const envSchema = z.object({
   // Application configuration
   PORT: z.string().nonempty().default("3000"),
 
+  // Redis configuration
+  REDIS_URL: z.string().nonempty().default("redis://localhost:6379"),
+  REDIS_TTL: z.coerce.number().nonnegative().default(300),
+
   // Database configuration
   DATABASE_URL: z.string().nonempty().default(""),
 

@@ -22,6 +22,7 @@ import { jwtService } from "./jwt.service.ts";
 import { logger } from "@/lib/logger.ts";
 import { config } from "@/config/config.ts";
 import { password } from "@/lib/password.ts";
+import { publicUserSchema } from "../user/user.schema.ts";
 
 async function registerUser(userData: RegisterUserDto) {
   const user = registerUserSchema.parse(userData);
@@ -29,7 +30,6 @@ async function registerUser(userData: RegisterUserDto) {
   logger.info({ userName: user.userName }, "Registering new user");
 
   user.password = await password.hashPassword(user.password);
-
   const createdUserId = await userRepository.createUser(user);
 
   logger.info({ userId: createdUserId }, "User registered successfully");
@@ -48,7 +48,6 @@ async function loginUser(loginData: LoginUserDto, res: Response) {
     if (e instanceof UserNotFoundError) {
       throw new AuthenticationError("Invalid email or password");
     }
-
     throw e;
   }
 
@@ -77,6 +76,7 @@ async function loginUser(loginData: LoginUserDto, res: Response) {
   await cookiesService.setRefreshCookiesInResponse(res, refreshToken);
   await cookiesService.setAccessCookiesInResponse(res, accessToken);
 
+  await userService.createUserCache(publicUserSchema.parse(user), user.id);
   logger.info({ userId: user.id }, "User logged in successfully");
 }
 
@@ -116,6 +116,7 @@ async function logout(req: Request, res: Response) {
   }
   cookiesService.clearCookiesInResponse(res);
   await authRepository.deleteActiveRefreshToken(req.userId);
+  userService.invalidateUserCache(req.userId);
   logger.debug("User logged out, cookies cleared");
 }
 

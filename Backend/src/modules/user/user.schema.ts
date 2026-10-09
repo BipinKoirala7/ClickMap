@@ -7,6 +7,10 @@ export const publicUserSchema = createSelectSchema(users)
     id: true,
     password: true,
   })
+  .extend({
+    createdAt: z.coerce.date().transform((t) => t.toISOString()),
+    updatedAt: z.coerce.date().transform((t) => t.toISOString()),
+  })
   .openapi("User");
 
 export const updateUserSchema = createUpdateSchema(users, {

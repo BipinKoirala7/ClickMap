@@ -118,9 +118,9 @@ describe("Update User", () => {
     mockedUserRepository.findById.mockResolvedValue(undefined);
 
     // Act & Assert
-    await expect(userService.updateUser("some-wrong-id", {})).rejects.toThrow(
-      UserNotFoundError,
-    );
+    await expect(
+      userService.updateUser("some-wrong-id", { name: "Valid Name" }),
+    ).rejects.toThrow(UserNotFoundError);
     expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
   });
 
@@ -162,9 +162,9 @@ describe("Update User", () => {
     mockedUserRepository.findById.mockResolvedValue(undefined);
 
     // Act & Assert
-    await expect(userService.updateUser("some-wrong-id", {})).rejects.toThrow(
-      UserNotFoundError,
-    );
+    await expect(
+      userService.updateUser("some-wrong-id", { name: "Valid Name" }),
+    ).rejects.toThrow(UserNotFoundError);
     expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
   });
 
@@ -241,7 +241,7 @@ describe("Update User", () => {
     mockedUserRepository.findById.mockRejectedValue(error);
 
     await expect(
-      userService.updateUser(mockedUser.id, { name: "X" } as UpdateUserDto),
+      userService.updateUser(mockedUser.id, { name: "Valid Name" }),
     ).rejects.toThrow("Database connection error");
     expect(mockedUserRepository.updateUserById).not.toHaveBeenCalled();
   });

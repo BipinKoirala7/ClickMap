@@ -86,12 +86,15 @@ describe("publicUserSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a non-date createdAt/updatedAt", () => {
+  it("coerces string createdAt/updatedAt values to ISO strings", () => {
     const result = publicUserSchema.safeParse({
       ...validSelectRow,
       createdAt: "2027-01-01",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.createdAt).toBe("2027-01-01T00:00:00.000Z");
+    }
   });
 
   it("does not enforce email format, trimming, or length limits (no overrides on select)", () => {

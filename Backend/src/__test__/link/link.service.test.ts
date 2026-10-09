@@ -30,6 +30,9 @@ const userId = "user123";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(userService.getActiveUser).mockImplementation((id) =>
+    userService.getById(id),
+  );
 });
 
 describe("Create link", () => {
@@ -402,21 +405,15 @@ describe("Update link", () => {
 
   it("should successfully update a link", async () => {
     const existingLink = { id: linkId, isActive: true } as any;
-    const updatedLink = {
-      id: linkId,
-      isActive: true,
-      title: "Updated Title",
-    } as any;
-
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
       isActive: true,
     } as User);
     vi.mocked(linkRepository.getLink).mockResolvedValue(existingLink);
-    vi.mocked(linkRepository.updateLink).mockResolvedValue(updatedLink);
+    vi.mocked(linkRepository.updateLink).mockResolvedValue(undefined);
 
-    const result = await linkService.updateLink(
+    await linkService.updateLink(
       linkId,
       userId,
       validUpdateData,
@@ -429,7 +426,6 @@ describe("Update link", () => {
       userId,
       validUpdateData,
     );
-    expect(result).toEqual(updatedLink);
   });
 });
 
@@ -538,8 +534,6 @@ describe("Activate link", () => {
   });
 
   it("should successfully activate a link", async () => {
-    const activatedLink = { id: linkId, isActive: true } as any;
-
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
@@ -549,14 +543,13 @@ describe("Activate link", () => {
       id: linkId,
       isActive: false,
     } as any);
-    vi.mocked(linkRepository.activateLink).mockResolvedValue(activatedLink);
+    vi.mocked(linkRepository.activateLink).mockResolvedValue(undefined);
 
-    const result = await linkService.activateLink(linkId, userId);
+    await linkService.activateLink(linkId, userId);
 
     expect(userService.getById).toHaveBeenCalledWith(userId);
     expect(linkRepository.getLink).toHaveBeenCalledWith(linkId, userId);
     expect(linkRepository.activateLink).toHaveBeenCalledWith(linkId, userId);
-    expect(result).toEqual(activatedLink);
   });
 });
 
@@ -665,8 +658,6 @@ describe("Deactivate link", () => {
   });
 
   it("should successfully deactivate a link", async () => {
-    const deactivatedLink = { id: linkId, isActive: false } as any;
-
     vi.mocked(userService.getById).mockResolvedValue({
       id: userId,
       name: "Test User",
@@ -676,13 +667,12 @@ describe("Deactivate link", () => {
       id: linkId,
       isActive: true,
     } as any);
-    vi.mocked(linkRepository.deactivateLink).mockResolvedValue(deactivatedLink);
+    vi.mocked(linkRepository.deactivateLink).mockResolvedValue(undefined);
 
-    const result = await linkService.deactivateLink(linkId, userId);
+    await linkService.deactivateLink(linkId, userId);
 
     expect(userService.getById).toHaveBeenCalledWith(userId);
     expect(linkRepository.getLink).toHaveBeenCalledWith(linkId, userId);
     expect(linkRepository.deactivateLink).toHaveBeenCalledWith(linkId, userId);
-    expect(result).toEqual(deactivatedLink);
   });
 });
