@@ -19,6 +19,7 @@ import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
 import redisClient from "@/lib/redisConnect";
 import { config } from "@/config/config";
+import { redirectService } from "../redirect/redirect.service";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!userId || userId.trim().length == 0) {
@@ -85,6 +86,7 @@ async function updateLink(
 
   await linkRepository.updateLink(linkId, user.id, data);
   await invalidateLinkCache(user.id, linkId);
+  await redirectService.invalidateRedirectCache(link.shortCode);
 }
 
 async function activateLink(linkId: string, userId: string | undefined) {
@@ -98,6 +100,7 @@ async function activateLink(linkId: string, userId: string | undefined) {
 
   await linkRepository.activateLink(linkId, user.id);
   await invalidateLinkCache(user.id, linkId);
+  await redirectService.createRedirectCache(link.shortCode, link);
 }
 
 async function deactivateLink(linkId: string, userId: string | undefined) {
@@ -112,6 +115,7 @@ async function deactivateLink(linkId: string, userId: string | undefined) {
 
   await linkRepository.deactivateLink(linkId, user.id);
   await invalidateLinkCache(user.id, linkId);
+  await redirectService.invalidateRedirectCache(link.shortCode);
 }
 
 function getLinkRedisKey(userId: string, linkId: string) {
