@@ -14,12 +14,26 @@ import {
 import type { User } from "@/modules/auth/auth.schema.ts";
 import { userStatusAction } from "@/types/types";
 import { logger } from "@/lib/logger";
+import redisClient from "@/lib/redisConnect";
 
 async function getUserById(id: string | undefined): Promise<PublicUserDto> {
   if (!id || id.trim().length == 0) throw new AuthenticationError();
+  const redisKey = `user:${id}`;
+
+  const cached = await redisClient.get(redisKey);
+  if (cached) return publicUserSchema.parse(JSON.parse(cached));
+
   const user = await userRepository.findById(id);
   if (!user) throw new UserNotFoundError();
-  return publicUserSchema.parse(user);
+
+  const publicUser = publicUserSchema.parse(user);
+  redisClient.set(redisKey, JSON.stringify(publicUser), {
+    expiration: {
+      type: "EX",
+      value: 3600,
+    },
+  });
+  return publicUser;
 }
 
 async function updateUser(
@@ -33,6 +47,7 @@ async function updateUser(
 
   const info = updateUserSchema.parse(updatedUserInfo);
   await userRepository.updateUserById(id, info);
+  await invalidateUserCache(id);
 }
 
 async function updateUserStatus(
@@ -49,9 +64,11 @@ async function updateUserStatus(
   if (action === userStatusAction.DEACTIVATE) {
     if (!user.isActive) throw new UserAlreadyDeactivatedError();
     await userRepository.deactivateUser(id);
+    await invalidateUserCache(id);
   } else {
     if (user.isActive) throw new UserAlreadyActiveError();
     await userRepository.activateUser(id);
+    await invalidateUserCache(id);
   }
 }
 
@@ -67,6 +84,14 @@ async function getByEmail(email: string): Promise<User> {
 
   if (!user) throw new UserNotFoundError();
   return user;
+}
+
+async function invalidateUserCache(id: string) {
+  try {
+    await redisClient.del(`user:${id}`);
+  } catch (err) {
+    logger.warn({ err }, "Failed to invalidate user cache");
+  }
 }
 
 export const userService = {

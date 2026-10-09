@@ -1,9 +1,8 @@
+import { config } from "@/config/config";
 import redis from "redis";
 
-const REDIS_PORT = 6379;
-
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL ?? `redis://localhost:${REDIS_PORT}`,
+  url: config.REDIS_URL,
   socket: {
     connectTimeout: 60000,
     reconnectStrategy: (retries) =>
