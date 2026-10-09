@@ -4,7 +4,6 @@ import {
   LinkAlreadyActiveError,
   LinkAlreadyDeactivatedError,
   LinkNotFoundError,
-  UserNotActiveError,
 } from "@/errors/Errors.ts";
 import {
   createLinkSchema,
@@ -14,49 +13,41 @@ import {
   type NewLink,
   type PublicLinkDto,
   type UpdateLinkDto,
-} from "./links.schema.ts";
+} from "@/modules/links/links.schema.ts";
 import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
+import redisClient from "@/lib/redisConnect";
+import { config } from "@/config/config";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!userId || userId.trim().length == 0) {
     throw new AuthenticationError();
   }
 
-  const user = await userService.getById(userId);
-
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
-
+  const user = await userService.getActiveUser(userId);
   const link = createLinkSchema.safeParse(dto);
+
   if (!link.success) {
     logger.error("Invalid link data provided");
     logger.error(link.error.message);
     throw new InvalidLinkError();
   }
+
   const newLink: NewLink = {
     userId: user.id,
     ...link.data,
   };
-
   await linkRepository.createLink(newLink);
 }
 
 async function getUserLinks(userId: string | undefined) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
-  const user = await userService.getById(userId);
 
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
-
+  const user = await userService.getActiveUser(userId);
   const links = await linkRepository.getUserLinks(user.id);
-
   const publicLinks: PublicLinkDto[] = [];
+
   for (const link of links) {
     publicLinks.push(publicLinkSchema.parse(link));
   }
@@ -66,17 +57,17 @@ async function getUserLinks(userId: string | undefined) {
 
 async function getLinkInfo(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
-  const user = await userService.getById(userId);
 
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
+  const user = await userService.getActiveUser(userId);
+  const cached = await readLinkCache(user.id, linkId);
+  if (cached) return cached;
 
   const link = await linkRepository.getLink(linkId, user.id);
-
   if (!link) throw new LinkNotFoundError();
-  return publicLinkSchema.parse(link);
+
+  const publicLink = publicLinkSchema.parse(link);
+  await createLinkCache(user.id, linkId, publicLink);
+  return publicLink;
 }
 
 async function updateLink(
@@ -85,50 +76,85 @@ async function updateLink(
   linkData: UpdateLinkDto,
 ) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
-  const user = await userService.getById(userId);
 
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
-
+  const user = await userService.getActiveUser(userId);
+  const data = updateLinkSchema.parse(linkData);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
-  const data = updateLinkSchema.parse(linkData);
 
-  return await linkRepository.updateLink(linkId, user.id, data);
+  await linkRepository.updateLink(linkId, user.id, data);
+  await invalidateLinkCache(user.id, linkId);
 }
 
 async function activateLink(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
-  const user = await userService.getById(userId);
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
 
+  const user = await userService.getActiveUser(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   if (link.isActive) throw new LinkAlreadyActiveError();
-  return await linkRepository.activateLink(linkId, user.id);
+
+  await linkRepository.activateLink(linkId, user.id);
+  await invalidateLinkCache(user.id, linkId);
 }
 
 async function deactivateLink(linkId: string, userId: string | undefined) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
-  const user = await userService.getById(userId);
-  if (!user.isActive) {
-    logger.warn("User is not active");
-    throw new UserNotActiveError();
-  }
 
+  const user = await userService.getActiveUser(userId);
   const link = await linkRepository.getLink(linkId, user.id);
 
   if (!link) throw new LinkNotFoundError();
   if (!link.isActive)
     throw new LinkAlreadyDeactivatedError("Link is already deactivated");
-  return await linkRepository.deactivateLink(linkId, user.id);
+
+  await linkRepository.deactivateLink(linkId, user.id);
+  await invalidateLinkCache(user.id, linkId);
+}
+
+function getLinkRedisKey(userId: string, linkId: string) {
+  return `link:${userId}:${linkId}`;
+}
+
+async function createLinkCache(
+  userId: string,
+  linkId: string,
+  link: PublicLinkDto,
+) {
+  try {
+    await redisClient.set(
+      getLinkRedisKey(userId, linkId),
+      JSON.stringify(link),
+      {
+        expiration: { type: "EX", value: config.REDIS_TTL },
+      },
+    );
+  } catch (err) {
+    logger.warn({ err }, "Failed to create a link cache");
+  }
+}
+
+async function readLinkCache(
+  userId: string,
+  linkId: string,
+): Promise<PublicLinkDto | null> {
+  try {
+    const cached = await redisClient.get(getLinkRedisKey(userId, linkId));
+    return cached ? publicLinkSchema.parse(JSON.parse(cached)) : null;
+  } catch (err) {
+    logger.warn({ err }, "Failed to read link cache");
+    return null;
+  }
+}
+
+async function invalidateLinkCache(userId: string, linkId: string) {
+  try {
+    await redisClient.del(getLinkRedisKey(userId, linkId));
+  } catch (err) {
+    logger.warn({ err }, "Failed to invalidate a link cache");
+  }
 }
 
 export const linkService = {

@@ -2,6 +2,7 @@ import {
   AuthenticationError,
   UserAlreadyActiveError,
   UserAlreadyDeactivatedError,
+  UserNotActiveError,
   UserNotFoundError,
 } from "@/errors/Errors.ts";
 import { userRepository } from "@/modules/user/user.repository.ts";
@@ -114,12 +115,22 @@ async function invalidateUserCache(id: string) {
   }
 }
 
+async function getActiveUser(userId: string) {
+  const user = await userService.getById(userId);
+  if (!user.isActive) {
+    logger.warn("User is not active");
+    throw new UserNotActiveError();
+  }
+  return user;
+}
+
 export const userService = {
   getUserById,
   updateUser,
   updateUserStatus,
   getById,
   getByEmail,
+  getActiveUser,
   getUserRedisKey,
   createUserCache,
   readCacheUser,
