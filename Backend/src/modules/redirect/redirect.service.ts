@@ -1,4 +1,3 @@
-import { config } from "@/config/config";
 import { logger } from "@/lib/logger";
 import redisClient from "@/lib/redisConnect";
 import { linkRepository } from "@/modules/links/links.repository";
@@ -22,13 +21,7 @@ function getRedirectRedisKey(shortcode: string) {
 
 async function createRedirectCache(shortCode: string, link: Link) {
   try {
-    await redisClient.set(
-      getRedirectRedisKey(shortCode),
-      JSON.stringify(link),
-      {
-        expiration: { type: "EX", value: config.REDIS_TTL },
-      },
-    );
+    await redisClient.set(getRedirectRedisKey(shortCode), JSON.stringify(link));
   } catch (err) {
     logger.warn({ err }, "Failed to create User Cache");
   }
