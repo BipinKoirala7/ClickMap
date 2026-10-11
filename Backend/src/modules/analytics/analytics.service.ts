@@ -1,9 +1,9 @@
 import { AuthenticationError, InvalidEventError } from "@/errors/Errors";
-import analyticsRepository from "./analytics.repository";
+import analyticsRepository from "@/modules/analytics/analytics.repository";
 import {
   createClickEventSchema,
   type CreateClickEventInput,
-} from "./analytics.schema";
+} from "@/modules/analytics/analytics.schema";
 import { logger } from "@/lib/logger";
 import { linkRepository } from "../links/links.repository";
 

@@ -1,6 +1,6 @@
 import { db } from "@/db/database";
 import { clickEvents } from "@/db/schema";
-import type { CreateClickEventDto } from "./analytics.schema";
+import type { CreateClickEventDto } from "@/modules/analytics/analytics.schema";
 import { eq } from "drizzle-orm";
 
 async function createEvent(event: CreateClickEventDto): Promise<void> {

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { redirectService } from "@/modules/redirect/redirect.service";
-import type { CreateClickEventInput } from "../analytics/analytics.schema";
+import type { CreateClickEventInput } from "@/modules/analytics/analytics.schema";
 import { isbot } from "isbot";
 import { UAParser } from "ua-parser-js";
 import { lookupGeo } from "@/lib/geo";

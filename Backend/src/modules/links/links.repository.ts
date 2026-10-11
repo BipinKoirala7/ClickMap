@@ -6,7 +6,7 @@ import type {
 } from "@/modules/links/links.schema.ts";
 import { db } from "@/db/database.ts";
 import { clickEvents, links } from "@/db/schema.ts";
-import { eq, and, count, lt, gte, desc } from "drizzle-orm";
+import { eq, and, count, lt, gte, desc, countDistinct, sql } from "drizzle-orm";
 
 configDotenv();
 
@@ -107,10 +107,15 @@ async function getClicksOverTime(
   startDate: Date,
   endDate: Date,
 ) {
-  const clicks = await db
+  const day = sql<string>`to_char(${clickEvents.clickedAt}, 'YYYY-MM-DD')`.as(
+    "day",
+  );
+
+  const rows = await db
     .select({
-      date: clickEvents.clickedAt,
+      date: day,
       count: count(),
+      visitorCount: countDistinct(clickEvents.visitorId),
     })
     .from(clickEvents)
     .innerJoin(links, eq(clickEvents.linkId, links.id))
@@ -121,10 +126,22 @@ async function getClicksOverTime(
         lt(clickEvents.clickedAt, endDate),
       ),
     )
-    .groupBy(clickEvents.clickedAt)
-    .orderBy(clickEvents.clickedAt);
+    .groupBy(day)
+    .orderBy(day);
 
-  return clicks;
+  const byDay = new Map(rows.map((r) => [r.date, r]));
+  const fmt = new Intl.DateTimeFormat("en-CA"); // YYYY-MM-DD
+
+  const result: { date: string; count: number; visitorCount: number }[] = [];
+  for (let t = startDate.getTime(); t < endDate.getTime(); t += 86_400_000) {
+    const key = fmt.format(new Date(t));
+    result.push({
+      date: key,
+      count: byDay.get(key)?.count ?? 0,
+      visitorCount: byDay.get(key)?.visitorCount ?? 0,
+    });
+  }
+  return result;
 }
 
 async function getUserRecentLinks(
