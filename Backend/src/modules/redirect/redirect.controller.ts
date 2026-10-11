@@ -1,11 +1,11 @@
 import type { Request, Response } from "express";
 import { redirectService } from "@/modules/redirect/redirect.service";
 import type { CreateClickEventInput } from "../analytics/analytics.schema";
-import analyticsService from "../analytics/analytics.service";
 import { isbot } from "isbot";
 import { UAParser } from "ua-parser-js";
 import { lookupGeo } from "@/lib/geo";
 import { logger } from "@/lib/logger";
+import { clicksQueue } from "@/lib/queue";
 
 async function getLinkURLByShortCode(
   req: Request<{ shortCode: string }>,
@@ -24,7 +24,7 @@ async function getLinkURLByShortCode(
 
     const event: CreateClickEventInput = {
       linkId: link.id,
-      clickedAt: new Date(),
+      clickedAt: new Date().toISOString(),
       referer: req.headers["referer"] ?? null,
       ip: req.ip ?? null,
       userAgent: ua,
@@ -37,9 +37,7 @@ async function getLinkURLByShortCode(
       city,
     };
 
-    analyticsService
-      .createEvent(event)
-      .catch((err) => console.log("Error: ", err));
+    clicksQueue.add("clicks", event);
 
     res.redirect(link.originalUrl);
   } else {

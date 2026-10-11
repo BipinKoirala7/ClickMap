@@ -18,7 +18,6 @@ import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
 import redisClient from "@/lib/redisConnect";
-import { config } from "@/config/config";
 import { redirectService } from "../redirect/redirect.service";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
@@ -131,9 +130,6 @@ async function createLinkCache(
     await redisClient.set(
       getLinkRedisKey(userId, linkId),
       JSON.stringify(link),
-      {
-        expiration: { type: "EX", value: config.REDIS_TTL },
-      },
     );
   } catch (err) {
     logger.warn({ err }, "Failed to create a link cache");

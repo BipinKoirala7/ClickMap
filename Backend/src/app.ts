@@ -16,6 +16,7 @@ import cookieParser from "cookie-parser";
 import { apiRouter } from "@/routes.ts";
 import redirectRouter from "@/modules/redirect/redirect.routes.ts";
 import { redisConnect } from "@/lib/redisConnect.ts";
+import "@/lib/worker";
 
 const app = express();
 

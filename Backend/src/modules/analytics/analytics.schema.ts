@@ -1,8 +1,10 @@
 import { clickEvents } from "@/db/schema.ts";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import type z from "zod";
+import z from "zod";
 
-export const createClickEventSchema = createInsertSchema(clickEvents)
+export const createClickEventSchema = createInsertSchema(clickEvents, {
+  clickedAt: z.iso.datetime().transform((date) => new Date(date)),
+})
   .pick({
     linkId: true,
     clickedAt: true,
