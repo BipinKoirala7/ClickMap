@@ -1,8 +1,12 @@
 import { configDotenv } from "dotenv";
-import type { NewLink, UpdateLinkDto } from "@/modules/links/links.schema.ts";
+import type {
+  LinkWithClickCount,
+  NewLink,
+  UpdateLinkDto,
+} from "@/modules/links/links.schema.ts";
 import { db } from "@/db/database.ts";
-import { links } from "@/db/schema.ts";
-import { eq, and } from "drizzle-orm";
+import { clickEvents, links } from "@/db/schema.ts";
+import { eq, and, count, lt, gte, desc, countDistinct, sql } from "drizzle-orm";
 
 configDotenv();
 
@@ -53,12 +57,127 @@ async function deactivateLink(linkId: string, userId: string) {
     .where(and(eq(links.id, linkId), eq(links.userId, userId)));
 }
 
+async function getTotalUserLinks(userId: string, date: Date) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(links)
+    .where(and(eq(links.userId, userId), lt(links.createdAt, date)));
+
+  return result ? result.count : 0;
+}
+
+// Helper functions
+async function getTotalClicksForUser(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    );
+
+  return result ? result.count : 0;
+}
+
+async function getTotalActiveLinksForUser(userId: string, date: Date) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(links)
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.isActive, true),
+        lt(links.createdAt, date),
+      ),
+    );
+
+  return result ? result.count : 0;
+}
+
+async function getClicksOverTime(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const day = sql<string>`to_char(${clickEvents.clickedAt}, 'YYYY-MM-DD')`.as(
+    "day",
+  );
+
+  const rows = await db
+    .select({
+      date: day,
+      count: count(),
+      visitorCount: countDistinct(clickEvents.visitorId),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(day)
+    .orderBy(day);
+
+  const byDay = new Map(rows.map((r) => [r.date, r]));
+  const fmt = new Intl.DateTimeFormat("en-CA"); // YYYY-MM-DD
+
+  const result: { date: string; count: number; visitorCount: number }[] = [];
+  for (let t = startDate.getTime(); t < endDate.getTime(); t += 86_400_000) {
+    const key = fmt.format(new Date(t));
+    result.push({
+      date: key,
+      count: byDay.get(key)?.count ?? 0,
+      visitorCount: byDay.get(key)?.visitorCount ?? 0,
+    });
+  }
+  return result;
+}
+
+async function getUserRecentLinks(
+  userId: string,
+): Promise<LinkWithClickCount[]> {
+  return await db
+    .select({
+      id: links.id,
+      title: links.title,
+      shortCode: links.shortCode,
+      originalUrl: links.originalUrl,
+      clicks: count(links.id),
+      isActive: links.isActive,
+      expiresAt: links.expiresAt,
+      createdAt: links.createdAt,
+      updatedAt: links.updatedAt,
+    })
+    .from(links)
+    .innerJoin(clickEvents, eq(clickEvents.linkId, links.id))
+    .where(eq(links.userId, userId))
+    .groupBy(links.id)
+    .orderBy(desc(links.createdAt))
+    .limit(5);
+}
+
 export const linkRepository = {
   createLink,
   getUserLinks,
+  getTotalUserLinks,
+  getTotalClicksForUser,
+  getTotalActiveLinksForUser,
   getLink,
   getLinkbyShortCode,
   updateLink,
   activateLink,
   deactivateLink,
+  getClicksOverTime,
+  getUserRecentLinks,
 };

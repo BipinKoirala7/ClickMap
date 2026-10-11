@@ -18,7 +18,7 @@ import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
 import redisClient from "@/lib/redisConnect";
-import { redirectService } from "../redirect/redirect.service";
+import { redirectService } from "@/modules/redirect/redirect.service";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!userId || userId.trim().length == 0) {
@@ -55,8 +55,13 @@ async function getUserLinks(userId: string | undefined) {
   return publicLinks;
 }
 
-async function getLinkInfo(linkId: string, userId: string | undefined) {
+async function getLinkInfo(
+  linkId: string | undefined,
+  userId: string | undefined,
+) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
+  if (!linkId || linkId.trim().length == 0)
+    throw new LinkNotFoundError("Link ID is required");
 
   const user = await userService.getActiveUser(userId);
   const cached = await readLinkCache(user.id, linkId);
@@ -71,11 +76,12 @@ async function getLinkInfo(linkId: string, userId: string | undefined) {
 }
 
 async function updateLink(
-  linkId: string,
+  linkId: string | undefined,
   userId: string | undefined,
   linkData: UpdateLinkInput,
 ) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
+  if (!linkId || linkId.trim().length == 0) throw new LinkNotFoundError();
 
   const user = await userService.getActiveUser(userId);
   const data = updateLinkSchema.parse(linkData);
@@ -88,8 +94,12 @@ async function updateLink(
   await redirectService.invalidateRedirectCache(link.shortCode);
 }
 
-async function activateLink(linkId: string, userId: string | undefined) {
+async function activateLink(
+  linkId: string | undefined,
+  userId: string | undefined,
+) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
+  if (!linkId || linkId.trim().length == 0) throw new LinkNotFoundError();
 
   const user = await userService.getActiveUser(userId);
   const link = await linkRepository.getLink(linkId, user.id);
@@ -102,8 +112,12 @@ async function activateLink(linkId: string, userId: string | undefined) {
   await redirectService.createRedirectCache(link.shortCode, link);
 }
 
-async function deactivateLink(linkId: string, userId: string | undefined) {
+async function deactivateLink(
+  linkId: string | undefined,
+  userId: string | undefined,
+) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
+  if (!linkId || linkId.trim().length == 0) throw new LinkNotFoundError();
 
   const user = await userService.getActiveUser(userId);
   const link = await linkRepository.getLink(linkId, user.id);
@@ -117,6 +131,7 @@ async function deactivateLink(linkId: string, userId: string | undefined) {
   await redirectService.invalidateRedirectCache(link.shortCode);
 }
 
+// Helper Functions
 function getLinkRedisKey(userId: string, linkId: string) {
   return `link:${userId}:${linkId}`;
 }

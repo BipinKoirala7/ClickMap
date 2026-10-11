@@ -76,6 +76,7 @@ export const clickEvents = p.pgTable("click_events", {
     .varchar()
     .references(() => links.id)
     .notNull(),
+  visitorId: p.varchar(),
   clickedAt: p.timestamp().notNull().defaultNow(),
   referer: p.varchar(),
   ip: p.varchar(),

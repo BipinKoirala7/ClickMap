@@ -1,7 +1,6 @@
 import { type Request, type Response } from "express";
 import { linkService } from "./links.service.ts";
 import RestApiResponse from "@/types/RestApiResponse.ts";
-import { LinkNotFoundError } from "@/errors/Errors.ts";
 
 async function createLinkController(req: Request, res: Response) {
   await linkService.createLink(req.userId, req.body);
@@ -23,9 +22,11 @@ async function getAllLinksController(req: Request, res: Response) {
     );
 }
 
-async function getLinkController(req: Request<{ id: string }>, res: Response) {
+async function getLinkController(
+  req: Request<{ id: string | undefined }>,
+  res: Response,
+) {
   const linkId = req.params.id;
-  if (!linkId) throw new LinkNotFoundError("Link ID is required");
   res
     .status(200)
     .json(
@@ -38,24 +39,18 @@ async function getLinkController(req: Request<{ id: string }>, res: Response) {
 }
 
 async function updateLinkController(
-  req: Request<{ id: string }>,
+  req: Request<{ id: string | undefined }>,
   res: Response,
 ) {
-  const linkId = req.params.id;
-  if (!linkId) throw new LinkNotFoundError("Link ID is required");
-
-  await linkService.updateLink(linkId, req.userId, req.body);
+  await linkService.updateLink(req.params.id, req.userId, req.body);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 
 async function deactivateLinkController(
-  req: Request<{ id: string }>,
+  req: Request<{ id: string | undefined }>,
   res: Response,
 ) {
-  const linkId = req.params.id;
-  if (!linkId) throw new LinkNotFoundError("Link ID is required");
-
-  await linkService.deactivateLink(linkId, req.userId);
+  await linkService.deactivateLink(req.params.id, req.userId);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 
@@ -63,10 +58,7 @@ async function activateLinkController(
   req: Request<{ id: string }>,
   res: Response,
 ) {
-  const linkId = req.params.id;
-  if (!linkId) throw new LinkNotFoundError("Link ID is required");
-
-  await linkService.activateLink(linkId, req.userId);
+  await linkService.activateLink(req.params.id, req.userId);
   res.status(200).json(RestApiResponse.success(200, "OK", null));
 }
 

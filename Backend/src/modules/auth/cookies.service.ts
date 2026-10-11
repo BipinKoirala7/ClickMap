@@ -36,16 +36,33 @@ async function setRefreshCookiesInResponse(
 }
 
 function clearAccessTokenCookieInResponse(res: Response): void {
-  res.clearCookie("accessToken", { path: "/" });
+  res.clearCookie("accessToken", { path: config.COOKIE_ACCESS_TOKEN_PATH });
 }
 
 function clearRefreshTokenCookieInResponse(res: Response): void {
-  res.clearCookie("refreshToken", { path: "/api/v1/auth/refresh" });
+  res.clearCookie("refreshToken", { path: config.COOKIE_REFRESH_TOKEN_PATH });
 }
 
 function clearCookiesInResponse(res: Response): void {
-  res.clearCookie("accessToken", { path: "/" });
-  res.clearCookie("refreshToken", { path: "/api/v1/auth/refresh" });
+  res.clearCookie("accessToken", { path: config.COOKIE_ACCESS_TOKEN_PATH });
+  res.clearCookie("refreshToken", { path: config.COOKIE_REFRESH_TOKEN_PATH });
+}
+
+function getVisitorIdCookieFromRequest(req: Request): string | null {
+  return req.cookies["visitorId"] ?? null;
+}
+
+async function setVisitorIdCookieInResponse(
+  res: Response,
+  visitorId: string,
+): Promise<void> {
+  res.cookie("visitorId", visitorId, {
+    httpOnly: config.COOKIE_HTTP_ONLY,
+    secure: config.COOKIE_SECURE,
+    sameSite: config.COOKIE_SAME_SITE,
+    maxAge: config.COOKIE_VISITOR_ID_EXPIRATION,
+    path: config.COOKIE_VISITOR_ID_PATH,
+  });
 }
 
 export const cookiesService = {
@@ -56,4 +73,6 @@ export const cookiesService = {
   clearAccessTokenCookieInResponse,
   clearRefreshTokenCookieInResponse,
   clearCookiesInResponse,
+  getVisitorIdCookieFromRequest,
+  setVisitorIdCookieInResponse,
 };
