@@ -1,6 +1,7 @@
 import { AuthenticationError } from "@/errors/Errors";
 import RestApiResponse from "@/types/RestApiResponse";
 import type { Request, Response } from "express";
+import analyticsService from "./analytics.service";
 
 async function getOverviewAnalytics(req: Request, res: Response) {
   const userId = req.userId;
@@ -14,7 +15,7 @@ async function getOverviewAnalytics(req: Request, res: Response) {
       RestApiResponse.success(
         200,
         "Link analytics retrieved successfully",
-        null,
+        await analyticsService.getOverviewAnalytics(userId),
       ),
     );
 }

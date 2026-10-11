@@ -18,7 +18,7 @@ import { linkRepository } from "@/modules/links/links.repository.ts";
 import { userService } from "@/modules/user/user.service.ts";
 import { logger } from "@/lib/logger.ts";
 import redisClient from "@/lib/redisConnect";
-import { redirectService } from "../redirect/redirect.service";
+import { redirectService } from "@/modules/redirect/redirect.service";
 
 async function createLink(userId: string | undefined, dto: CreateLinkInput) {
   if (!userId || userId.trim().length == 0) {
@@ -53,29 +53,6 @@ async function getUserLinks(userId: string | undefined) {
   }
 
   return publicLinks;
-}
-
-async function getUserTotalLinks(userId: string) {
-  return await linkRepository.getTotalUserLinks(userId);
-}
-
-async function getTotalClicksForUser(userId: string) {
-  return await linkRepository.getTotalClicksForUser(userId);
-}
-
-async function getTotalActiveLinksForUser(userId: string) {
-  return await linkRepository.getTotalActiveLinksForUser(userId);
-}
-
-async function getClickRateForUser(userId: string) {
-  const totalLinks = await getUserTotalLinks(userId);
-  const totalClicks = await getTotalClicksForUser(userId);
-
-  if (totalLinks === 0) {
-    return 0;
-  }
-
-  return totalClicks / totalLinks;
 }
 
 async function getLinkInfo(
@@ -198,10 +175,6 @@ async function invalidateLinkCache(userId: string, linkId: string) {
 export const linkService = {
   createLink,
   getUserLinks,
-  getUserTotalLinks,
-  getTotalClicksForUser,
-  getTotalActiveLinksForUser,
-  getClickRateForUser,
   getLinkInfo,
   updateLink,
   activateLink,

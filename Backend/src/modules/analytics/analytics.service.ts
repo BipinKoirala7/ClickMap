@@ -5,7 +5,7 @@ import {
   type CreateClickEventInput,
 } from "./analytics.schema";
 import { logger } from "@/lib/logger";
-import { linkService } from "../links/links.service";
+import { linkRepository } from "../links/links.repository";
 
 async function createEvent(event: CreateClickEventInput): Promise<void> {
   if (!event) {
@@ -35,23 +35,90 @@ async function getEvents(linkId: string) {
 async function getOverviewAnalytics(userId: string) {
   if (!userId || userId.trim().length === 0) throw new AuthenticationError();
 
-  // Todo: Get the following data form the month ranges
-  // Todo: Create a typescript type for the return value of this function
-  // Todo: Make sure to handle the case when there are no links or clicks for the user
+  const kpiStats = await getKPIStats(userId);
+  const clicksOverTime = await getClicksOverTime(userId);
+  const recentLinks = await getUserRecentLinks(userId);
 
+  return {
+    kpiStats,
+    clicksOverTime,
+    recentLinks,
+  };
+}
+
+async function getKPIStats(userId: string) {
   const monthRanges = getMonthRanges();
 
-  const total_links = await linkService.getUserTotalLinks(userId);
-  const total_clicks = await linkService.getTotalClicksForUser(userId);
-  const total_active_links =
-    await linkService.getTotalActiveLinksForUser(userId);
-  const click_rate = await linkService.getClickRateForUser(userId);
+  const total_links = await linkRepository.getTotalUserLinks(
+    userId,
+    monthRanges.today,
+  );
+  const prev_total_links = await linkRepository.getTotalUserLinks(
+    userId,
+    monthRanges.thisMonth.start,
+  );
 
-  console.log("total_links", total_links);
-  console.log("total_clicks", total_clicks);
-  console.log("total_active_links", total_active_links);
-  console.log("click_rate", click_rate);
-  console.log("monthRanges", monthRanges);
+  const total_clicks = await linkRepository.getTotalClicksForUser(
+    userId,
+    monthRanges.thisMonth.start,
+    monthRanges.nextMonth.start,
+  );
+  const prev_total_clicks = await linkRepository.getTotalClicksForUser(
+    userId,
+    monthRanges.prevMonth.start,
+    monthRanges.thisMonth.start,
+  );
+
+  const total_active_links = await linkRepository.getTotalActiveLinksForUser(
+    userId,
+    monthRanges.today,
+  );
+  const prev_total_active_links =
+    await linkRepository.getTotalActiveLinksForUser(
+      userId,
+      monthRanges.thisMonth.start,
+    );
+
+  const click_rate = total_links === 0 ? 0 : total_clicks / total_links;
+  const prev_click_rate =
+    total_links === 0 ? 0 : prev_total_clicks / prev_total_links;
+
+  logger.info({ total_links }, "total_links");
+  logger.info({ prev_total_links }, "prev_total_links");
+  logger.info({ total_clicks }, "total_clicks");
+  logger.info({ prev_total_clicks }, "prev_total_clicks");
+  logger.info({ total_active_links }, "total_active_links");
+  logger.info({ prev_total_active_links }, "prev_total_active_links");
+  logger.info({ click_rate }, "click_rate");
+  logger.info({ prev_click_rate }, "prev_click_rate");
+  logger.info({ monthRanges }, "monthRanges");
+
+  return {
+    total_links,
+    prev_total_links,
+    total_clicks,
+    prev_total_clicks,
+    total_active_links,
+    prev_total_active_links,
+    click_rate,
+    prev_click_rate,
+  };
+}
+
+async function getClicksOverTime(userId: string) {
+  const monthRanges = getMonthRanges();
+
+  const clicks = await linkRepository.getClicksOverTime(
+    userId,
+    monthRanges.thisMonth.start,
+    monthRanges.nextMonth.start,
+  );
+
+  return clicks;
+}
+
+async function getUserRecentLinks(userId: string) {
+  return linkRepository.getUserRecentLinks(userId);
 }
 
 // Helper functions
@@ -61,23 +128,23 @@ function getMonthRanges(now = new Date()) {
 
   // Month boundaries. Day 0 of the next month = last day of this month.
   const thisMonthStart = new Date(year, month, 1);
-  const thisMonthEnd = new Date(year, month + 1, 0);
+  const nextMonthStart = new Date(year, month + 1, 1);
 
   // Month -1 rolls the year back automatically, so no special case for January.
   const prevMonthStart = new Date(year, month - 1, 1);
-  const prevMonthEnd = new Date(year, month, 0);
 
   return {
-    today: fmt(now),
-    thisMonth: { start: fmt(thisMonthStart), end: fmt(thisMonthEnd) },
-    prevMonth: { start: fmt(prevMonthStart), end: fmt(prevMonthEnd) },
+    today: now,
+    thisMonth: { start: thisMonthStart },
+    prevMonth: { start: prevMonthStart },
+    nextMonth: { start: nextMonthStart },
   };
 }
 
-const pad = (n: number) => String(n).padStart(2, "0");
+// const pad = (n: number) => String(n).padStart(2, "0");
 
-const fmt = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+// const fmt = (d: Date) =>
+//   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 const analyticsService = {
   createEvent,
