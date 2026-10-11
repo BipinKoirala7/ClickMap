@@ -7,6 +7,7 @@ export const createClickEventSchema = createInsertSchema(clickEvents, {
 })
   .pick({
     linkId: true,
+    visitorId: true,
     clickedAt: true,
     referer: true,
     ip: true,

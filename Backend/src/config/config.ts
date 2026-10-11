@@ -29,6 +29,13 @@ const envSchema = z.object({
   COOKIE_ACCESS_TOKEN_PATH: z.string().min(1).default("/"),
   COOKIE_REFRESH_TOKEN_PATH: z.string().min(1).default("/api/v1/auth/refresh"),
 
+  // Redirect Cookie configuration
+  COOKIE_VISITOR_ID_PATH: z.string().min(1).default("/"),
+  COOKIE_VISITOR_ID_EXPIRATION: z.coerce
+    .number()
+    .positive()
+    .default(31536000000), // 1 year in milliseconds
+
   // Bcrypt configuration
   BCRYPT_SALT_ROUNDS: z.coerce.number().positive().default(12),
 

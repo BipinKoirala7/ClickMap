@@ -24,6 +24,7 @@ async function getLinkURLByShortCode(
 
     const event: CreateClickEventInput = {
       linkId: link.id,
+      visitorId: req.visitorId,
       clickedAt: new Date().toISOString(),
       referer: req.headers["referer"] ?? null,
       ip: req.ip ?? null,

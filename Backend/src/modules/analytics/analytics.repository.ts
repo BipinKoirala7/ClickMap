@@ -14,14 +14,6 @@ async function getEventsByLinkId(linkId: string) {
     .where(eq(clickEvents.linkId, linkId));
 }
 
-async function getTotalClicksForUser(userId: string) {
-  return await db.query.clickEvents
-    .findMany({
-      where: eq(links.userId, userId),
-    })
-    .then((clickEvents) => clickEvents.length);
-}
-
 const analyticsRepository = {
   createEvent,
   getEventsByLinkId,

@@ -53,6 +53,7 @@ async function getKPIStats(userId: string) {
     userId,
     monthRanges.today,
   );
+
   const prev_total_links = await linkRepository.getTotalUserLinks(
     userId,
     monthRanges.thisMonth.start,
@@ -63,6 +64,7 @@ async function getKPIStats(userId: string) {
     monthRanges.thisMonth.start,
     monthRanges.nextMonth.start,
   );
+
   const prev_total_clicks = await linkRepository.getTotalClicksForUser(
     userId,
     monthRanges.prevMonth.start,
@@ -73,6 +75,7 @@ async function getKPIStats(userId: string) {
     userId,
     monthRanges.today,
   );
+
   const prev_total_active_links =
     await linkRepository.getTotalActiveLinksForUser(
       userId,
@@ -81,17 +84,7 @@ async function getKPIStats(userId: string) {
 
   const click_rate = total_links === 0 ? 0 : total_clicks / total_links;
   const prev_click_rate =
-    total_links === 0 ? 0 : prev_total_clicks / prev_total_links;
-
-  logger.info({ total_links }, "total_links");
-  logger.info({ prev_total_links }, "prev_total_links");
-  logger.info({ total_clicks }, "total_clicks");
-  logger.info({ prev_total_clicks }, "prev_total_clicks");
-  logger.info({ total_active_links }, "total_active_links");
-  logger.info({ prev_total_active_links }, "prev_total_active_links");
-  logger.info({ click_rate }, "click_rate");
-  logger.info({ prev_click_rate }, "prev_click_rate");
-  logger.info({ monthRanges }, "monthRanges");
+    prev_total_links === 0 ? 0 : prev_total_clicks / prev_total_links;
 
   return {
     total_links,
@@ -140,11 +133,6 @@ function getMonthRanges(now = new Date()) {
     nextMonth: { start: nextMonthStart },
   };
 }
-
-// const pad = (n: number) => String(n).padStart(2, "0");
-
-// const fmt = (d: Date) =>
-//   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 const analyticsService = {
   createEvent,

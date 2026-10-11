@@ -1,5 +1,9 @@
 import { configDotenv } from "dotenv";
-import type { NewLink, UpdateLinkDto } from "@/modules/links/links.schema.ts";
+import type {
+  LinkWithClickCount,
+  NewLink,
+  UpdateLinkDto,
+} from "@/modules/links/links.schema.ts";
 import { db } from "@/db/database.ts";
 import { clickEvents, links } from "@/db/schema.ts";
 import { eq, and, count, lt, gte, desc } from "drizzle-orm";
@@ -123,15 +127,20 @@ async function getClicksOverTime(
   return clicks;
 }
 
-async function getUserRecentLinks(userId: string) {
+async function getUserRecentLinks(
+  userId: string,
+): Promise<LinkWithClickCount[]> {
   return await db
     .select({
       id: links.id,
+      title: links.title,
       shortCode: links.shortCode,
-      original: links.originalUrl,
+      originalUrl: links.originalUrl,
       clicks: count(links.id),
-      status: links.isActive,
+      isActive: links.isActive,
+      expiresAt: links.expiresAt,
       createdAt: links.createdAt,
+      updatedAt: links.updatedAt,
     })
     .from(links)
     .innerJoin(clickEvents, eq(clickEvents.linkId, links.id))
