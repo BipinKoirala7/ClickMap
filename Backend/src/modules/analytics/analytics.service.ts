@@ -1,4 +1,4 @@
-import { AuthenticationError, InvalidEventError } from "@/errors/Errors";
+import { InvalidEventError, LinkNotFoundError } from "@/errors/Errors";
 import analyticsRepository from "@/modules/analytics/analytics.repository";
 import {
   createClickEventSchema,
@@ -6,6 +6,7 @@ import {
 } from "@/modules/analytics/analytics.schema";
 import { logger } from "@/lib/logger";
 import { linkRepository } from "../links/links.repository";
+import { getPeriodRanges } from "@/lib/time";
 
 async function createEvent(event: CreateClickEventInput): Promise<void> {
   if (!event) {
@@ -23,20 +24,16 @@ async function createEvent(event: CreateClickEventInput): Promise<void> {
   await analyticsRepository.createEvent(parsedData.data);
 }
 
-async function getEvents(linkId: string) {
-  if (!linkId || linkId.trim().length === 0) {
-    logger.error("Invalid link ID provided");
-    throw new InvalidEventError();
-  }
-
-  return await analyticsRepository.getEventsByLinkId(linkId);
-}
-
+// Overview Analytics
 async function getOverviewAnalytics(userId: string) {
-  if (!userId || userId.trim().length === 0) throw new AuthenticationError();
+  const monthRanges = getPeriodRanges();
 
   const kpiStats = await getKPIStats(userId);
-  const clicksOverTime = await getClicksOverTime(userId);
+  const clicksOverTime = await getClicksOverTime(
+    userId,
+    monthRanges.current.start,
+    monthRanges.current.end,
+  );
   const recentLinks = await getUserRecentLinks(userId);
 
   return {
@@ -47,39 +44,39 @@ async function getOverviewAnalytics(userId: string) {
 }
 
 async function getKPIStats(userId: string) {
-  const monthRanges = getMonthRanges();
+  const monthRanges = getPeriodRanges();
 
   const total_links = await linkRepository.getTotalUserLinks(
     userId,
-    monthRanges.today,
+    monthRanges.current.end,
   );
 
   const prev_total_links = await linkRepository.getTotalUserLinks(
     userId,
-    monthRanges.thisMonth.start,
+    monthRanges.previous.end,
   );
 
   const total_clicks = await linkRepository.getTotalClicksForUser(
     userId,
-    monthRanges.thisMonth.start,
-    monthRanges.nextMonth.start,
+    monthRanges.current.start,
+    monthRanges.current.end,
   );
 
   const prev_total_clicks = await linkRepository.getTotalClicksForUser(
     userId,
-    monthRanges.prevMonth.start,
-    monthRanges.thisMonth.start,
+    monthRanges.previous.start,
+    monthRanges.previous.end,
   );
 
   const total_active_links = await linkRepository.getTotalActiveLinksForUser(
     userId,
-    monthRanges.today,
+    monthRanges.current.end,
   );
 
   const prev_total_active_links =
     await linkRepository.getTotalActiveLinksForUser(
       userId,
-      monthRanges.thisMonth.start,
+      monthRanges.previous.end,
     );
 
   const click_rate = total_links === 0 ? 0 : total_clicks / total_links;
@@ -98,13 +95,15 @@ async function getKPIStats(userId: string) {
   };
 }
 
-async function getClicksOverTime(userId: string) {
-  const monthRanges = getMonthRanges();
-
+async function getClicksOverTime(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
   const clicks = await linkRepository.getClicksOverTime(
     userId,
-    monthRanges.thisMonth.start,
-    monthRanges.nextMonth.start,
+    startDate,
+    endDate,
   );
 
   return clicks;
@@ -114,30 +113,213 @@ async function getUserRecentLinks(userId: string) {
   return linkRepository.getUserRecentLinks(userId);
 }
 
-// Helper functions
-function getMonthRanges(now = new Date()) {
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-
-  // Month boundaries. Day 0 of the next month = last day of this month.
-  const thisMonthStart = new Date(year, month, 1);
-  const nextMonthStart = new Date(year, month + 1, 1);
-
-  // Month -1 rolls the year back automatically, so no special case for January.
-  const prevMonthStart = new Date(year, month - 1, 1);
+// Analytics
+async function getAnalytics(userId: string, startDate: Date, endDate: Date) {
+  const kpiStats = await getAnalyticsKPIStats(userId, startDate, endDate);
+  const clicksOverTime = await getClicksOverTime(userId, startDate, endDate);
+  const audienceAnalytics = await getAudienceAnalytics(
+    userId,
+    startDate,
+    endDate,
+  );
+  const topReferrers = await getTopReferrersForClicks(
+    userId,
+    startDate,
+    endDate,
+  );
+  const usersTopLinks = await getUsersTopLinks(userId, startDate, endDate);
 
   return {
-    today: now,
-    thisMonth: { start: thisMonthStart },
-    prevMonth: { start: prevMonthStart },
-    nextMonth: { start: nextMonthStart },
+    kpiStats,
+    clicksOverTime,
+    audience: audienceAnalytics,
+    referrers: topReferrers,
+    topLinks: usersTopLinks,
+  };
+}
+
+async function getAnalyticsKPIStats(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const totalClicks = await linkRepository.getTotalClicksForUser(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  const totalUniqueVisitors =
+    await linkRepository.getTotalUniqueVisitorsForUser(
+      userId,
+      startDate,
+      endDate,
+    );
+
+  const topReferrer = await linkRepository.getTopReferrerForClicks(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  const topLocation = await linkRepository.getTopLocationForClicks(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  return {
+    totalClicks,
+    totalUniqueVisitors,
+    topReferrer,
+    topLocation,
+  };
+}
+
+async function getAudienceAnalytics(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const deviceTypeDistribution =
+    await linkRepository.getDeviceTypeDistributionForClicks(
+      userId,
+      startDate,
+      endDate,
+    );
+
+  const browserDistribution =
+    await linkRepository.getBrowserDistributionForClicks(
+      userId,
+      startDate,
+      endDate,
+    );
+
+  const countryDistribution =
+    await linkRepository.getCountryDistributionForClicks(
+      userId,
+      startDate,
+      endDate,
+    );
+
+  return {
+    deviceTypeDistribution,
+    browserDistribution,
+    countryDistribution,
+  };
+}
+
+async function getTopReferrersForClicks(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const topReferrers = await linkRepository.getTopReferrersForClicks(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  return topReferrers;
+}
+
+async function getUsersTopLinks(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const topLinks = await linkRepository.getUsersTopLinks(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  return topLinks;
+}
+
+async function getLinkAnalytics(
+  userId: string,
+  linkId: string | undefined,
+  startDate: Date,
+  endDate: Date,
+) {
+  if (!linkId || linkId.trim().length === 0) {
+    throw new LinkNotFoundError("Link ID is required to fetch analytics");
+  }
+
+  const totalClicks = await linkRepository.getTotalClickInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const totalUniqueVisitors = await linkRepository.getTotalUniqueVisitorsInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const topReferrer = await linkRepository.getTopReferrerInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const topLocation = await linkRepository.getTopLocationInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const clicksOverTime = await linkRepository.getClicksOverTimeInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const deviceTypeDistribution =
+    await linkRepository.getDeviceTypeDistributionInLink(
+      userId,
+      linkId,
+      startDate,
+      endDate,
+    );
+
+  const topLocations = await linkRepository.getTopLocationsInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const recentClickEvents = await linkRepository.getRecentClickEvents(userId);
+
+  return {
+    kpiStats: {
+      totalClicks,
+      totalUniqueVisitors,
+      topReferrer,
+      topLocation,
+    },
+    clicksOverTime,
+    audience: {
+      deviceTypeDistribution,
+      topLocations,
+    },
+    recentClickEvents,
   };
 }
 
 const analyticsService = {
   createEvent,
-  getEvents,
   getOverviewAnalytics,
+  getAnalytics,
+  getLinkAnalytics,
 };
 
 export default analyticsService;
