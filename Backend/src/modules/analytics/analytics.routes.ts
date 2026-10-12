@@ -7,5 +7,6 @@ const analyticsRouter = Router();
 analyticsRouter.use(authenticate);
 
 analyticsRouter.get("/overview", analyticsController.getOverviewAnalytics);
+analyticsRouter.get("/", analyticsController.getAnalytics);
 
 export default analyticsRouter;

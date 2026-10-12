@@ -343,10 +343,10 @@ async function getUsersTopLinks(
 ) {
   const rows = await db
     .select({
-      linkId: clickEvents.linkId,
+      linkId: links.id,
       shortCode: links.shortCode,
       isActive: links.isActive,
-      cliks: count(clickEvents.linkId),
+      clicks: count(clickEvents.linkId),
       uniqueClicks: countDistinct(clickEvents.visitorId),
     })
     .from(clickEvents)
@@ -358,8 +358,9 @@ async function getUsersTopLinks(
         lt(clickEvents.clickedAt, endDate),
       ),
     )
-    .groupBy(clickEvents.linkId)
-    .orderBy(desc(count()));
+    .groupBy(links.id)
+    .orderBy(desc(count(clickEvents.linkId)))
+    .limit(10);
 
   return rows;
 }

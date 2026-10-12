@@ -116,7 +116,6 @@ async function getUserRecentLinks(userId: string) {
 }
 
 // Analytics
-
 async function getAnalytics(userId: string, startDate: Date, endDate: Date) {
   const kpiStats = await getAnalyticsKPIStats(userId, startDate, endDate);
   const clicksOverTime = await getClicksOverTime(userId, startDate, endDate);
