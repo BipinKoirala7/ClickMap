@@ -1,4 +1,4 @@
-import { AuthenticationError, InvalidEventError } from "@/errors/Errors";
+import { InvalidEventError, LinkNotFoundError } from "@/errors/Errors";
 import analyticsRepository from "@/modules/analytics/analytics.repository";
 import {
   createClickEventSchema,
@@ -26,8 +26,6 @@ async function createEvent(event: CreateClickEventInput): Promise<void> {
 
 // Overview Analytics
 async function getOverviewAnalytics(userId: string) {
-  if (!userId || userId.trim().length === 0) throw new AuthenticationError();
-
   const monthRanges = getPeriodRanges();
 
   const kpiStats = await getKPIStats(userId);
@@ -239,10 +237,89 @@ async function getUsersTopLinks(
   return topLinks;
 }
 
+async function getLinkAnalytics(
+  userId: string,
+  linkId: string | undefined,
+  startDate: Date,
+  endDate: Date,
+) {
+  if (!linkId || linkId.trim().length === 0) {
+    throw new LinkNotFoundError("Link ID is required to fetch analytics");
+  }
+
+  const totalClicks = await linkRepository.getTotalClickInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const totalUniqueVisitors = await linkRepository.getTotalUniqueVisitorsInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const topReferrer = await linkRepository.getTopReferrerInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const topLocation = await linkRepository.getTopLocationInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const clicksOverTime = await linkRepository.getClicksOverTimeInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const deviceTypeDistribution =
+    await linkRepository.getDeviceTypeDistributionInLink(
+      userId,
+      linkId,
+      startDate,
+      endDate,
+    );
+
+  const topLocations = await linkRepository.getTopLocationsInLink(
+    userId,
+    linkId,
+    startDate,
+    endDate,
+  );
+
+  const recentClickEvents = await linkRepository.getRecentClickEvents(userId);
+
+  return {
+    kpiStats: {
+      totalClicks,
+      totalUniqueVisitors,
+      topReferrer,
+      topLocation,
+    },
+    clicksOverTime,
+    audience: {
+      deviceTypeDistribution,
+      topLocations,
+    },
+    recentClickEvents,
+  };
+}
+
 const analyticsService = {
   createEvent,
   getOverviewAnalytics,
   getAnalytics,
+  getLinkAnalytics,
 };
 
 export default analyticsService;

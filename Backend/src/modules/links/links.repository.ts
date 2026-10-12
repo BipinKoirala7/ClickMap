@@ -365,6 +365,220 @@ async function getUsersTopLinks(
   return rows;
 }
 
+async function getTotalClickInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const [result] = await db
+    .select({ count: count() })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    );
+
+  return result ? result.count : 0;
+}
+
+async function getTotalUniqueVisitorsInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const [result] = await db
+    .select({ count: countDistinct(clickEvents.visitorId) })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    );
+
+  return result ? result.count : 0;
+}
+
+async function getTopReferrerInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const rows = await db
+    .select({
+      referrer: clickEvents.referer,
+      count: count(),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(clickEvents.referer)
+    .orderBy(desc(count()));
+
+  return rows.length > 0 ? rows[0] : { referrer: "Unknown", count: 0 };
+}
+
+async function getTopLocationInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const rows = await db
+    .select({
+      country: clickEvents.country,
+      count: count(),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(clickEvents.country)
+    .orderBy(desc(count()));
+
+  return rows.length > 0 ? rows[0] : { country: "Unknown", count: 0 };
+}
+
+async function getClicksOverTimeInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const day = sql<string>`to_char(${clickEvents.clickedAt}, 'YYYY-MM-DD')`.as(
+    "day",
+  );
+
+  const rows = await db
+    .select({
+      date: day,
+      count: count(),
+      visitorCount: countDistinct(clickEvents.visitorId),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(day)
+    .orderBy(day);
+
+  const byDay = new Map(rows.map((r) => [r.date, r]));
+
+  const result: { date: string; count: number; visitorCount: number }[] = [];
+  for (let t = startDate.getTime(); t < endDate.getTime(); t += 86_400_000) {
+    const key = new Date(t).toISOString().slice(0, 10); // UTC YYYY-MM-DD
+    result.push({
+      date: key,
+      count: byDay.get(key)?.count ?? 0,
+      visitorCount: byDay.get(key)?.visitorCount ?? 0,
+    });
+  }
+  return result;
+}
+
+async function getDeviceTypeDistributionInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const rows = await db
+    .select({
+      deviceType: clickEvents.device,
+      count: count(),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(clickEvents.device)
+    .orderBy(desc(count()));
+
+  return rows;
+}
+
+async function getTopLocationsInLink(
+  userId: string,
+  linkId: string,
+  startDate: Date,
+  endDate: Date,
+) {
+  const rows = await db
+    .select({
+      country: clickEvents.country,
+      count: count(),
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(
+      and(
+        eq(links.userId, userId),
+        eq(links.id, linkId),
+        gte(clickEvents.clickedAt, startDate),
+        lt(clickEvents.clickedAt, endDate),
+      ),
+    )
+    .groupBy(clickEvents.country)
+    .orderBy(desc(count()));
+
+  return rows;
+}
+
+async function getRecentClickEvents(userId: string, limit = 10) {
+  return await db
+    .select({
+      id: clickEvents.id,
+      linkId: clickEvents.linkId,
+      visitorId: clickEvents.visitorId,
+      device: clickEvents.device,
+      browser: clickEvents.browser,
+      country: clickEvents.country,
+      referer: clickEvents.referer,
+      clickedAt: clickEvents.clickedAt,
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(eq(links.userId, userId))
+    .orderBy(desc(clickEvents.clickedAt))
+    .limit(limit);
+}
+
 export const linkRepository = {
   createLink,
   getUserLinks,
@@ -386,4 +600,13 @@ export const linkRepository = {
   getBrowserDistributionForClicks,
   getCountryDistributionForClicks,
   getUsersTopLinks,
+
+  getTotalClickInLink,
+  getTotalUniqueVisitorsInLink,
+  getTopReferrerInLink,
+  getTopLocationInLink,
+  getClicksOverTimeInLink,
+  getDeviceTypeDistributionInLink,
+  getTopLocationsInLink,
+  getRecentClickEvents,
 };
