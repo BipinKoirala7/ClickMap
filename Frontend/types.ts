@@ -28,7 +28,6 @@ type PublicUserDto = {
 };
 
 // Link
-
 type PublicLinkDto = {
   id: string;
   isActive: boolean;
@@ -40,8 +39,31 @@ type PublicLinkDto = {
   expiresAt: string;
 };
 
-// API Responses
+// Analytics
+export type OverviewStats = {
+  total_links: number;
+  prev_total_links: number;
+  total_clicks: number;
+  prev_total_clicks: number;
+  total_active_links: number;
+  prev_total_active_links: number;
+  click_rate: number;
+  prev_click_rate: number;
+};
 
+type ClicksOverTime = {
+  date: string;
+  clicks: number;
+  visitors: number;
+}[];
+
+export type LinkWithClickCount = PublicLinkDto & { clicks: number };
+export type LinkWithClickCountAndUniqueClicks = LinkWithClickCount & {
+  uniqueClicks: number;
+};
+type RecentLinks = LinkWithClickCount[];
+
+// API Responses
 type RestAPIResponse<T> = {
   status: number;
   message: string;
@@ -49,11 +71,16 @@ type RestAPIResponse<T> = {
   success: boolean;
 };
 
+// User Response
 type RegisterUserResponse = RestAPIResponse<void>;
 type LoginUserResponse = RestAPIResponse<void>;
 type GetUserResponse = RestAPIResponse<PublicUserDto>;
 
+// Link Response
 type GetLinksResponse = RestAPIResponse<PublicLinkDto[]>;
+
+// Analytics Response
+type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
 
 export type {
   PublicUserDto,
@@ -64,4 +91,5 @@ export type {
   GetUserResponse,
   PublicLinkDto,
   GetLinksResponse,
+  OverviewStatsResponse,
 };

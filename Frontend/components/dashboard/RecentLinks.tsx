@@ -29,7 +29,7 @@ export default function RecentLinks() {
   }
 
   return (
-    <div className="rounded-2xl bg-muted/40 p-6 flex flex-col gap-5">
+    <div className="rounded-2xl bg-muted/40 p-6 border-2 border-muted flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">

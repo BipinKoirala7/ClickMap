@@ -29,7 +29,7 @@ function Chart() {
   ];
 
   return (
-    <div className="w-full rounded-2xl bg-muted/40 p-6 flex flex-col gap-6">
+    <div className="w-full rounded-2xl bg-muted/40 p-6 border-2 border-muted flex flex-col gap-6">
       <div className="flex flex-col">
         <h2 className="text-lg font-semibold text-foreground">
           Clicks over time
@@ -102,7 +102,6 @@ function Chart() {
               stroke="var(--chart-1)"
               strokeWidth={2}
               fill="url(#clicksGradient)"
-              isAnimationActive={false}
             />
             <Area
               type="monotone"
@@ -110,7 +109,6 @@ function Chart() {
               stroke="var(--chart-4)"
               strokeWidth={2}
               fill="url(#visitorsGradient)"
-              isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
