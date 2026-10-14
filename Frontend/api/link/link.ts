@@ -1,13 +1,14 @@
 import api from "@/lib/axios";
 import {
-  ClicksOverTime,
   ClicksOverTimeResponse,
-  GetLinksResponse,
   OverviewStatsResponse,
+  RecentLinksResponse,
 } from "@/types";
 
 export async function getRecentLinks() {
-  const response = await api.get<GetLinksResponse>("/overview/recent-links");
+  const response = await api.get<RecentLinksResponse>(
+    "/analytics/overview/recent-links",
+  );
 
   if (response.status === 200) {
     return response.data.data;

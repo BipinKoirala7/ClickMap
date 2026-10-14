@@ -61,7 +61,7 @@ export type LinkWithClickCount = PublicLinkDto & { clicks: number };
 export type LinkWithClickCountAndUniqueClicks = LinkWithClickCount & {
   uniqueClicks: number;
 };
-export type RecentLinks = LinkWithClickCount[];
+export type RecentLinks = LinkWithClickCountAndUniqueClicks[];
 
 // API Responses
 type RestAPIResponse<T> = {
@@ -82,6 +82,7 @@ type GetLinksResponse = RestAPIResponse<PublicLinkDto[]>;
 // Analytics Response
 type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
 type ClicksOverTimeResponse = RestAPIResponse<ClicksOverTime>;
+type RecentLinksResponse = RestAPIResponse<RecentLinks>;
 
 export type {
   PublicUserDto,
@@ -94,4 +95,5 @@ export type {
   GetLinksResponse,
   OverviewStatsResponse,
   ClicksOverTimeResponse,
+  RecentLinksResponse,
 };

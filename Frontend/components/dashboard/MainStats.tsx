@@ -7,7 +7,7 @@ import { Link2, Zap, Activity, TrendingUp } from "lucide-react";
 
 function MainStats() {
   const { isLoading, isError, data } = useQuery<OverviewStats>({
-    queryKey: ["overview-analytics"],
+    queryKey: ["overview-stats"],
     queryFn: getOverviewStats,
   });
 
@@ -59,10 +59,14 @@ function MainStats() {
           {data.total_links}
         </div>
         <div className="mt-1 text-sm text-primary">
-          {Math.abs(
-            (data.total_links - data.prev_total_links) / data.prev_total_links,
-          ) * 100}
-          % vs prev 30 days
+          {data.prev_total_links === 0
+            ? "No Activity for Previous Period"
+            : `${
+                Math.abs(
+                  (data.total_links - data.prev_total_links) /
+                    data.prev_total_links,
+                ) * 100
+              }% vs prev 30 days`}
         </div>
       </div>
       <div
@@ -81,11 +85,14 @@ function MainStats() {
           {data.total_clicks}
         </div>
         <div className="mt-1 text-sm text-primary">
-          {Math.abs(
-            (data.total_clicks - data.prev_total_clicks) /
-              data.prev_total_clicks,
-          ) * 100}
-          % vs prev 30 days
+          {data.prev_total_clicks === 0
+            ? "No Activity for Previous Period"
+            : `${
+                Math.abs(
+                  (data.total_clicks - data.prev_total_clicks) /
+                    data.prev_total_clicks,
+                ) * 100
+              }% vs prev 30 days`}
         </div>
       </div>
       <div
@@ -104,11 +111,14 @@ function MainStats() {
           {data.total_active_links}
         </div>
         <div className="mt-1 text-sm text-primary">
-          {Math.abs(
-            (data.total_active_links - data.prev_total_active_links) /
-              data.prev_total_active_links,
-          ) * 100}
-          % vs prev 30 days
+          {data.prev_total_active_links === 0
+            ? "No Activity for Previous Period"
+            : `${
+                Math.abs(
+                  (data.total_active_links - data.prev_total_active_links) /
+                    data.prev_total_active_links,
+                ) * 100
+              }% vs prev 30 days`}
         </div>
       </div>
       <div
@@ -125,10 +135,14 @@ function MainStats() {
           {data.click_rate}
         </div>
         <div className="mt-1 text-sm text-primary">
-          {Math.abs(
-            (data.click_rate - data.prev_click_rate) / data.prev_click_rate,
-          ) * 100}
-          % vs prev 30 days
+          {data.prev_click_rate === 0
+            ? "No Activity for Previous Period"
+            : `${
+                Math.abs(
+                  (data.click_rate - data.prev_click_rate) /
+                    data.prev_click_rate,
+                ) * 100
+              }% vs prev 30 days`}
         </div>
       </div>
     </div>

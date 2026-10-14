@@ -53,7 +53,7 @@ async function getUserRecentLinks(req: Request, res: Response) {
       RestApiResponse.success(
         200,
         "Link analytics retrieved successfully",
-        await analyticsService.getUsersTopLinks(userId, startDate, endDate),
+        await analyticsService.getUserRecentLinks(userId),
       ),
     );
 }

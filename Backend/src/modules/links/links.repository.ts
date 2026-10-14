@@ -1,6 +1,6 @@
 import { configDotenv } from "dotenv";
 import type {
-  LinkWithClickCount,
+  LinkWithClickCountAndUniqueClicks,
   NewLink,
   UpdateLinkDto,
 } from "@/modules/links/links.schema.ts";
@@ -149,7 +149,7 @@ async function getClicksOverTime(
 
 async function getUserRecentLinks(
   userId: string,
-): Promise<LinkWithClickCount[]> {
+): Promise<LinkWithClickCountAndUniqueClicks[]> {
   return await db
     .select({
       id: links.id,
@@ -157,6 +157,7 @@ async function getUserRecentLinks(
       shortCode: links.shortCode,
       originalUrl: links.originalUrl,
       clicks: count(links.id),
+      uniqueClicks: countDistinct(clickEvents.visitorId),
       isActive: links.isActive,
       expiresAt: links.expiresAt,
       createdAt: links.createdAt,
