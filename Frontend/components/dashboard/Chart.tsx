@@ -1,5 +1,8 @@
 "use client";
 
+import { getClicksOverTime } from "@/api/link/link";
+import { ClicksOverTime } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart,
   Area,
@@ -11,22 +14,35 @@ import {
 } from "recharts";
 
 function Chart() {
-  const chartData = [
-    { date: "Jun 1", clicks: 480, visitors: 300 },
-    { date: "Jun 3", clicks: 560, visitors: 340 },
-    { date: "Jun 5", clicks: 650, visitors: 320 },
-    { date: "Jun 7", clicks: 700, visitors: 420 },
-    { date: "Jun 9", clicks: 560, visitors: 390 },
-    { date: "Jun 11", clicks: 460, visitors: 330 },
-    { date: "Jun 13", clicks: 400, visitors: 300 },
-    { date: "Jun 15", clicks: 420, visitors: 260 },
-    { date: "Jun 17", clicks: 380, visitors: 240 },
-    { date: "Jun 19", clicks: 400, visitors: 220 },
-    { date: "Jun 21", clicks: 560, visitors: 260 },
-    { date: "Jun 24", clicks: 700, visitors: 300 },
-    { date: "Jun 27", clicks: 760, visitors: 340 },
-    { date: "Jun 30", clicks: 680, visitors: 380 },
-  ];
+  const { isLoading, isError, data } = useQuery<ClicksOverTime>({
+    queryKey: ["clicks-over-time"],
+    queryFn: getClicksOverTime,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="w-full rounded-2xl bg-muted/40 p-6 border-2 border-muted flex flex-col gap-6 animate-pulse">
+        <div className="flex flex-col gap-2">
+          <div className="h-4 w-1/3 rounded bg-muted"></div>
+          <div className="h-3 w-1/4 rounded bg-muted"></div>
+        </div>
+        <div className="h-80 w-full rounded bg-muted"></div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="w-full rounded-2xl bg-muted/40 p-6 border-2 border-muted flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold text-foreground">Error</h2>
+          <p className="text-sm text-muted-foreground">
+            Failed to fetch chart data.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full rounded-2xl bg-muted/40 p-6 border-2 border-muted flex flex-col gap-6">
@@ -42,7 +58,7 @@ function Chart() {
       <div className="h-80 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={chartData}
+            data={data}
             margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
           >
             <defs>
@@ -78,6 +94,7 @@ function Chart() {
             />
             <XAxis
               dataKey="date"
+              interval="equidistantPreserveStart"
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
@@ -98,14 +115,16 @@ function Chart() {
             />
             <Area
               type="monotone"
-              dataKey="clicks"
+              name="Clicks"
+              dataKey="clickCount"
               stroke="var(--chart-1)"
               strokeWidth={2}
               fill="url(#clicksGradient)"
             />
             <Area
               type="monotone"
-              dataKey="visitors"
+              name="Unique Visitors"
+              dataKey="visitorCount"
               stroke="var(--chart-4)"
               strokeWidth={2}
               fill="url(#visitorsGradient)"

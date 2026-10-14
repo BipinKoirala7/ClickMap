@@ -131,12 +131,16 @@ async function getClicksOverTime(
 
   const byDay = new Map(rows.map((r) => [r.date, r]));
 
-  const result: { date: string; count: number; visitorCount: number }[] = [];
+  const result: { date: string; clickCount: number; visitorCount: number }[] =
+    [];
   for (let t = startDate.getTime(); t < endDate.getTime(); t += 86_400_000) {
     const key = new Date(t).toISOString().slice(0, 10); // UTC YYYY-MM-DD
     result.push({
-      date: key,
-      count: byDay.get(key)?.count ?? 0,
+      date: new Date(key).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      clickCount: byDay.get(key)?.count ?? 0,
       visitorCount: byDay.get(key)?.visitorCount ?? 0,
     });
   }

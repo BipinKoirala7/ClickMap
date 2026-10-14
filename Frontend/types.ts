@@ -51,17 +51,17 @@ export type OverviewStats = {
   prev_click_rate: number;
 };
 
-type ClicksOverTime = {
+export type ClicksOverTime = {
   date: string;
-  clicks: number;
-  visitors: number;
+  clickCount: number;
+  visitorCount: number;
 }[];
 
 export type LinkWithClickCount = PublicLinkDto & { clicks: number };
 export type LinkWithClickCountAndUniqueClicks = LinkWithClickCount & {
   uniqueClicks: number;
 };
-type RecentLinks = LinkWithClickCount[];
+export type RecentLinks = LinkWithClickCount[];
 
 // API Responses
 type RestAPIResponse<T> = {
@@ -81,6 +81,7 @@ type GetLinksResponse = RestAPIResponse<PublicLinkDto[]>;
 
 // Analytics Response
 type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
+type ClicksOverTimeResponse = RestAPIResponse<ClicksOverTime>;
 
 export type {
   PublicUserDto,
@@ -92,4 +93,5 @@ export type {
   PublicLinkDto,
   GetLinksResponse,
   OverviewStatsResponse,
+  ClicksOverTimeResponse,
 };

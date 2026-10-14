@@ -25,24 +25,6 @@ async function createEvent(event: CreateClickEventInput): Promise<void> {
 }
 
 // Overview Analytics
-async function getOverviewAnalytics(userId: string) {
-  const monthRanges = getPeriodRanges();
-
-  const kpiStats = await getOverviewStats(userId);
-  const clicksOverTime = await getClicksOverTime(
-    userId,
-    monthRanges.current.start,
-    monthRanges.current.end,
-  );
-  const recentLinks = await getUserRecentLinks(userId);
-
-  return {
-    kpiStats,
-    clicksOverTime,
-    recentLinks,
-  };
-}
-
 async function getOverviewStats(userId: string) {
   const monthRanges = getPeriodRanges();
 
@@ -317,9 +299,9 @@ async function getLinkAnalytics(
 
 const analyticsService = {
   createEvent,
-  getOverviewAnalytics,
   getOverviewStats,
   getClicksOverTime,
+  getUserRecentLinks,
   getAudienceAnalytics,
   getTopReferrersForClicks,
   getUsersTopLinks,
