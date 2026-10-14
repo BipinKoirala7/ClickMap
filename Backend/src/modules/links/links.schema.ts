@@ -73,3 +73,7 @@ export type UpdateLinkDto = z.infer<typeof updateLinkSchema>;
 export type Link = typeof links.$inferSelect;
 export type NewLink = typeof links.$inferInsert;
 export type LinkWithClickCount = PublicLinkDto & { clicks: number };
+export type LinkWithClickCountAndUniqueClicks = PublicLinkDto & {
+  clicks: number;
+  uniqueClicks: number;
+};

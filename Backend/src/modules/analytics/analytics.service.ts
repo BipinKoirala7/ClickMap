@@ -25,25 +25,7 @@ async function createEvent(event: CreateClickEventInput): Promise<void> {
 }
 
 // Overview Analytics
-async function getOverviewAnalytics(userId: string) {
-  const monthRanges = getPeriodRanges();
-
-  const kpiStats = await getKPIStats(userId);
-  const clicksOverTime = await getClicksOverTime(
-    userId,
-    monthRanges.current.start,
-    monthRanges.current.end,
-  );
-  const recentLinks = await getUserRecentLinks(userId);
-
-  return {
-    kpiStats,
-    clicksOverTime,
-    recentLinks,
-  };
-}
-
-async function getKPIStats(userId: string) {
+async function getOverviewStats(userId: string) {
   const monthRanges = getPeriodRanges();
 
   const total_links = await linkRepository.getTotalUserLinks(
@@ -115,7 +97,7 @@ async function getUserRecentLinks(userId: string) {
 
 // Analytics
 async function getAnalytics(userId: string, startDate: Date, endDate: Date) {
-  const kpiStats = await getAnalyticsKPIStats(userId, startDate, endDate);
+  const kpiStats = await getAnalyticsStats(userId, startDate, endDate);
   const clicksOverTime = await getClicksOverTime(userId, startDate, endDate);
   const audienceAnalytics = await getAudienceAnalytics(
     userId,
@@ -138,7 +120,7 @@ async function getAnalytics(userId: string, startDate: Date, endDate: Date) {
   };
 }
 
-async function getAnalyticsKPIStats(
+async function getAnalyticsStats(
   userId: string,
   startDate: Date,
   endDate: Date,
@@ -317,7 +299,12 @@ async function getLinkAnalytics(
 
 const analyticsService = {
   createEvent,
-  getOverviewAnalytics,
+  getOverviewStats,
+  getClicksOverTime,
+  getUserRecentLinks,
+  getAudienceAnalytics,
+  getTopReferrersForClicks,
+  getUsersTopLinks,
   getAnalytics,
   getLinkAnalytics,
 };

@@ -1,6 +1,6 @@
 import { configDotenv } from "dotenv";
 import type {
-  LinkWithClickCount,
+  LinkWithClickCountAndUniqueClicks,
   NewLink,
   UpdateLinkDto,
 } from "@/modules/links/links.schema.ts";
@@ -131,12 +131,16 @@ async function getClicksOverTime(
 
   const byDay = new Map(rows.map((r) => [r.date, r]));
 
-  const result: { date: string; count: number; visitorCount: number }[] = [];
+  const result: { date: string; clickCount: number; visitorCount: number }[] =
+    [];
   for (let t = startDate.getTime(); t < endDate.getTime(); t += 86_400_000) {
     const key = new Date(t).toISOString().slice(0, 10); // UTC YYYY-MM-DD
     result.push({
-      date: key,
-      count: byDay.get(key)?.count ?? 0,
+      date: new Date(key).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+      clickCount: byDay.get(key)?.count ?? 0,
       visitorCount: byDay.get(key)?.visitorCount ?? 0,
     });
   }
@@ -145,7 +149,7 @@ async function getClicksOverTime(
 
 async function getUserRecentLinks(
   userId: string,
-): Promise<LinkWithClickCount[]> {
+): Promise<LinkWithClickCountAndUniqueClicks[]> {
   return await db
     .select({
       id: links.id,
@@ -153,6 +157,7 @@ async function getUserRecentLinks(
       shortCode: links.shortCode,
       originalUrl: links.originalUrl,
       clicks: count(links.id),
+      uniqueClicks: countDistinct(clickEvents.visitorId),
       isActive: links.isActive,
       expiresAt: links.expiresAt,
       createdAt: links.createdAt,

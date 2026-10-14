@@ -259,7 +259,7 @@ function LinksTable() {
                 </TableCell>
                 <TableCell className="px-4">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -275,7 +275,7 @@ function LinksTable() {
                         <Copy />
                         Copy short link
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
+                      <DropdownMenuItem>
                         <a
                           href={link.originalUrl}
                           target="_blank"

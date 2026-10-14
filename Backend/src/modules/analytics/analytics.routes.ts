@@ -6,7 +6,17 @@ const analyticsRouter = Router();
 
 analyticsRouter.use(authenticate);
 
-analyticsRouter.get("/overview", analyticsController.getOverviewAnalytics);
+// Overview analytics route
+analyticsRouter.get("/overview/stats", analyticsController.getOverviewStats);
+analyticsRouter.get(
+  "/overview/clicks-over-time",
+  analyticsController.getClicksOverTime,
+);
+analyticsRouter.get(
+  "/overview/recent-links",
+  analyticsController.getUserRecentLinks,
+);
+
 analyticsRouter.get("/", analyticsController.getAnalytics);
 analyticsRouter.get("/:linkId", analyticsController.getLinkAnalytics);
 
