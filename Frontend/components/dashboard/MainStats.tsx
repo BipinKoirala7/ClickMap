@@ -5,10 +5,10 @@ import { OverviewStats } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Link2, Zap, Activity, TrendingUp } from "lucide-react";
 
-function MainStats() {
+function MainStats({ length }: { length: string }) {
   const { isLoading, isError, data } = useQuery<OverviewStats>({
-    queryKey: ["overview-stats"],
-    queryFn: getOverviewStats,
+    queryKey: ["overview-stats", length],
+    queryFn: () => getOverviewStats(parseInt(length)),
   });
 
   if (isLoading) {

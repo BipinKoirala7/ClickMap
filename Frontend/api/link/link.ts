@@ -17,9 +17,9 @@ export async function getRecentLinks() {
   }
 }
 
-export async function getOverviewStats() {
+export async function getOverviewStats(length = 30) {
   const response = await api.get<OverviewStatsResponse>(
-    "/analytics/overview/stats",
+    `/analytics/overview/stats?length=${length}`,
   );
 
   if (response.status === 200) {
@@ -31,9 +31,9 @@ export async function getOverviewStats() {
   }
 }
 
-export async function getClicksOverTime() {
+export async function getClicksOverTime(length = 30) {
   const response = await api.get<ClicksOverTimeResponse>(
-    "/analytics/overview/clicks-over-time",
+    `/analytics/overview/clicks-over-time?length=${length}`,
   );
 
   if (response.status === 200) {

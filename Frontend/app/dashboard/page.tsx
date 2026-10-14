@@ -1,19 +1,9 @@
-import Chart from "@/components/dashboard/Chart";
-import MainStats from "@/components/dashboard/MainStats";
-import RecentLinks from "@/components/dashboard/RecentLinks";
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
 
 function page() {
   return (
     <div className="flex flex-col gap-5">
-      <div className="w-full flex flex-col">
-        <h1 className="text-3xl font-bold text-foreground">Overview</h1>
-        <p className="text-muted-foreground">
-          Last 30 days across all your links.
-        </p>
-      </div>
-      <MainStats />
-      <Chart />
-      <RecentLinks />
+      <DashboardOverview />
     </div>
   );
 }

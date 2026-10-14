@@ -13,10 +13,10 @@ import {
   Tooltip,
 } from "recharts";
 
-function Chart() {
+function Chart({ length }: { length: string }) {
   const { isLoading, isError, data } = useQuery<ClicksOverTime>({
-    queryKey: ["clicks-over-time"],
-    queryFn: getClicksOverTime,
+    queryKey: ["clicks-over-time", length],
+    queryFn: () => getClicksOverTime(parseInt(length)),
   });
 
   if (isLoading) {
