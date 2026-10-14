@@ -90,7 +90,7 @@ export default function RecentLinks() {
                       {link.originalUrl}
                     </td>
                     <td className="whitespace-nowrap py-3 pr-2 text-foreground">
-                      {new Date(link.createdAt.toLocaleString())}
+                      {new Date(link.createdAt).toLocaleDateString()}
                     </td>
                     <td className="whitespace-nowrap py-3 pr-2">
                       <span
@@ -103,7 +103,7 @@ export default function RecentLinks() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap py-3 pr-2 text-muted-foreground">
-                      {new Date(link.updatedAt.toLocaleDateString())}
+                      {new Date(link.updatedAt).toLocaleDateString()}
                     </td>
                     {/* Change from this more options button to a link to the links analytics page */}
                     <td className="py-3 px-3 flex align-center justify-center">
