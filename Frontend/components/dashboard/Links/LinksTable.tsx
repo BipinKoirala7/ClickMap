@@ -8,7 +8,6 @@ import {
   Search,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,34 +18,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { getUserLinks } from "@/api/link/link";
 import { useQuery } from "@tanstack/react-query";
 import { LinkWithClickCountAndUniqueCount } from "@/types";
 import { useState } from "react";
 import LinkOptions from "./LinkOptions";
+import StatusBadge, {
+  getLinkStatus,
+} from "@/components/dashboard/Links/StatusBadge";
 import { formatDate } from "@/lib/lib";
 
-type LinkStatus = "active" | "paused" | "expired";
-
 const PAGE_SIZE = 10;
-const STATUS_STYLES: Record<LinkStatus, string> = {
-  active: "bg-primary/15 text-primary",
-  paused: "bg-muted text-muted-foreground",
-  expired: "bg-destructive text-white",
-};
 
-function StatusBadge({ status }: { status: LinkStatus }) {
+function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <Badge
-      variant="secondary"
-      className={cn(
-        "border-transparent font-medium capitalize",
-        STATUS_STYLES[status],
-      )}
-    >
-      {status}
-    </Badge>
+    <div className="mt-8 flex flex-col gap-5 rounded-xl border bg-muted/40 p-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">All links</h2>
+        <p className="text-xs text-muted-foreground">
+          Every link you have created
+        </p>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -57,31 +51,36 @@ function LinksTable() {
   const { isLoading, data, isError } = useQuery<
     LinkWithClickCountAndUniqueCount[]
   >({
-    queryKey: ["recent-links"],
+    // distinct from RecentLinks' ["recent-links"] so the two caches don't collide
+    queryKey: ["links"],
     queryFn: getUserLinks,
   });
 
   if (isLoading) {
     return (
-      <div className="flex h-32 items-center justify-center text-muted-foreground">
-        Loading...
-      </div>
+      <Shell>
+        <div className="h-32 w-full animate-pulse rounded bg-muted" />
+      </Shell>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex h-32 items-center justify-center text-destructive">
-        Failed to load links. Please try again later.
-      </div>
+      <Shell>
+        <div className="flex h-32 items-center justify-center text-destructive">
+          Failed to load links. Please try again later.
+        </div>
+      </Shell>
     );
   }
 
-  if (!data) {
+  if (!data || data.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center text-muted-foreground">
-        No links found. Create a new link to get started.
-      </div>
+      <Shell>
+        <div className="flex h-32 items-center justify-center text-muted-foreground">
+          No links found. Create a new link to get started.
+        </div>
+      </Shell>
     );
   }
 
@@ -130,7 +129,7 @@ function LinksTable() {
 
       <Table className="bg-muted/40">
         <TableHeader>
-          <TableRow className="">
+          <TableRow>
             <TableHead className="h-12 px-4 text-muted-foreground">
               Short URL
             </TableHead>
@@ -161,7 +160,7 @@ function LinksTable() {
           {rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
               <TableCell
-                colSpan={7}
+                colSpan={8}
                 className="h-32 text-center text-muted-foreground"
               >
                 No links match &ldquo;{query}&rdquo;. Try a different short or
@@ -184,15 +183,7 @@ function LinksTable() {
                   {link.uniqueClicks}
                 </TableCell>
                 <TableCell className="px-4">
-                  <StatusBadge
-                    status={
-                      new Date(link.expiresAt) > new Date()
-                        ? link.isActive
-                          ? "active"
-                          : "paused"
-                        : "expired"
-                    }
-                  />
+                  <StatusBadge status={getLinkStatus(link)} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap px-4 text-muted-foreground">
                   {formatDate(link.createdAt)}

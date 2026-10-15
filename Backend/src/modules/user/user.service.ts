@@ -16,7 +16,6 @@ import type { User } from "@/modules/auth/auth.schema.ts";
 import { userStatusAction } from "@/types/types";
 import { logger } from "@/lib/logger";
 import redisClient from "@/lib/redisConnect";
-import { config } from "@/config/config";
 
 async function getUserById(id: string | undefined): Promise<PublicUserDto> {
   if (!id || id.trim().length == 0) throw new AuthenticationError();
@@ -89,9 +88,7 @@ function getUserRedisKey(id: string) {
 
 async function createUserCache(user: PublicUserDto, id: string) {
   try {
-    await redisClient.set(getUserRedisKey(id), JSON.stringify(user), {
-      expiration: { type: "EX", value: config.REDIS_TTL },
-    });
+    await redisClient.set(getUserRedisKey(id), JSON.stringify(user));
   } catch (err) {
     logger.warn({ err }, "Failed to create User Cache");
   }

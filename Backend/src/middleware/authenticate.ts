@@ -14,7 +14,9 @@ export async function authenticate(
     console.error("Tokens are missing in the request");
     throw new MissingTokenError();
   }
-  req.userId = await jwtService.verifyAccessToken(accessToken);
+  const userId = await jwtService.verifyAccessToken(accessToken);
+  req.userId = userId;
+
   next();
 }
 

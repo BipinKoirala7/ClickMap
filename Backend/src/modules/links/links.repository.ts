@@ -18,9 +18,9 @@ async function getUserLinks(userId: string) {
   return await db
     .select({
       id: links.id,
+      title: links.title,
       shortCode: links.shortCode,
       originalUrl: links.originalUrl,
-      title: links.title,
       isActive: links.isActive,
       clicks: count(clickEvents.id),
       uniqueClicks: countDistinct(clickEvents.visitorId),
@@ -170,7 +170,7 @@ async function getUserRecentLinks(
       title: links.title,
       shortCode: links.shortCode,
       originalUrl: links.originalUrl,
-      clicks: count(links.id),
+      clicks: count(clickEvents.id),
       uniqueClicks: countDistinct(clickEvents.visitorId),
       isActive: links.isActive,
       expiresAt: links.expiresAt,
@@ -178,7 +178,7 @@ async function getUserRecentLinks(
       updatedAt: links.updatedAt,
     })
     .from(links)
-    .innerJoin(clickEvents, eq(clickEvents.linkId, links.id))
+    .leftJoin(clickEvents, eq(clickEvents.linkId, links.id))
     .where(eq(links.userId, userId))
     .groupBy(links.id)
     .orderBy(desc(links.createdAt))

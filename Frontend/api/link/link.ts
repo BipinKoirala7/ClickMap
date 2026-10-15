@@ -15,8 +15,8 @@ export async function getUserLinks() {
 export async function createLink(createLinkDto: CreateLinkDto) {
   const response = await api.post("/link", createLinkDto);
 
-  if (response.status === 200) {
-    toast.success("Link created successfully!");
+  if (response.status === 201) {
+    toast.success("New Link created successfully!");
   } else {
     toast.error(response.data.message || "Failed to create link");
   }

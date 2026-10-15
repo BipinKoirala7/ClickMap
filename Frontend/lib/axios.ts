@@ -24,6 +24,10 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    if (error.response.status === 401) {
+      window.location.replace("/login");
+    }
+
     if (error.response.status >= 500) {
       // toast.error("Something went wrong on our end. Please try again.");
       error.message = "Something went wrong on our end. Please try again.";
