@@ -1,6 +1,6 @@
 "use client";
 
-import { getOverviewStats } from "@/api/link/link";
+import { getOverviewStats } from "@/api/analytics/overviewAnalytics";
 import { OverviewStats } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Link2, Zap, Activity, TrendingUp } from "lucide-react";

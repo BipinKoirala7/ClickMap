@@ -1,4 +1,12 @@
-const routes = {
+export const formatDate = (iso: string) => {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+export const ROUTES = {
   HOME: "/",
   AUTH: {
     LOGIN: "/login",
@@ -11,5 +19,3 @@ const routes = {
     SETTINGS: "/dashboard/settings",
   },
 };
-
-export const ROUTES = routes;

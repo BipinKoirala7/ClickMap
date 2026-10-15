@@ -1,26 +1,12 @@
 "use client";
 
-import {
-  Copy,
-  ExternalLink,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { getRecentLinks } from "@/api/link/link";
-import { LinkWithClickCountAndUniqueClicks } from "@/types";
+import { getRecentLinks } from "@/api/analytics/overviewAnalytics";
+import { LinkWithClickCountAndUniqueCount } from "@/types";
 import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { toast } from "sonner";
+import LinkOptions from "./Links/LinkOptions";
 
 type LinkStatus = "active" | "paused" | "expired";
 
@@ -32,18 +18,11 @@ const statusStyles: Record<LinkStatus, string> = {
 
 export default function RecentLinks() {
   const { isLoading, data, isError } = useQuery<
-    LinkWithClickCountAndUniqueClicks[]
+    LinkWithClickCountAndUniqueCount[]
   >({
     queryKey: ["recent-links"],
     queryFn: getRecentLinks,
   });
-
-  function handleCopy(shortUrl: string) {
-    // TODO: Add the domain when hosted
-
-    navigator.clipboard?.writeText(`https://${shortUrl}`);
-    toast.success("Short link copied to clipboard!");
-  }
 
   if (isLoading) {
     return (
@@ -138,6 +117,9 @@ export default function RecentLinks() {
               <th className="whitespace-nowrap py-2 pr-2 font-medium">
                 Created
               </th>
+              <th className="whitespace-nowrap py-2 pr-2 font-medium">
+                Updated
+              </th>
               <th className="w-8 py-2"></th>
             </tr>
           </thead>
@@ -183,56 +165,7 @@ export default function RecentLinks() {
                   })}
                 </td>
                 <td className="py-3 px-3 flex align-center justify-center">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Actions for ${link.shortCode}`}
-                      >
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-fit">
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => handleCopy(link.shortCode)}
-                      >
-                        <Copy />
-                        Copy short link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <a
-                          href={link.originalUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <ExternalLink />
-                          Open original
-                        </a>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer">
-                        <a
-                          href={`/dashboard/links/${link.id}/edit`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <Pencil />
-                          Edit
-                        </a>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        className="cursor-pointer"
-                      >
-                        <Trash2 />
-                        Disable
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <LinkOptions link={link} />
                 </td>
               </tr>
             ))}

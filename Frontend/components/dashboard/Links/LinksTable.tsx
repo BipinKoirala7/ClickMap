@@ -3,25 +3,13 @@
 import {
   ChevronLeft,
   ChevronRight,
-  Copy,
-  ExternalLink,
   ListFilter,
-  MoreHorizontal,
   Download,
-  Pencil,
   Search,
-  Trash2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -32,104 +20,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useMemo, useState } from "react";
+import { getUserLinks } from "@/api/link/link";
+import { useQuery } from "@tanstack/react-query";
+import { LinkWithClickCountAndUniqueCount } from "@/types";
+import { useState } from "react";
+import LinkOptions from "./LinkOptions";
+import { formatDate } from "@/lib/lib";
 
 type LinkStatus = "active" | "paused" | "expired";
 
-type ShortLink = {
-  id: string;
-  shortUrl: string;
-  originalUrl: string;
-  clicks: number;
-  unique: number;
-  status: LinkStatus;
-  createdAt: string; // ISO date
-};
-
-// TODO: replace with real data from your API
-const LINKS: ShortLink[] = [
-  {
-    id: "1",
-    shortUrl: "clk.mp/launch",
-    originalUrl: "https://acme.com/product-launch-2026-spring-collection",
-    clicks: 12480,
-    unique: 8421,
-    status: "active",
-    createdAt: "2026-06-12",
-  },
-  {
-    id: "2",
-    shortUrl: "clk.mp/docs",
-    originalUrl: "https://docs.acme.com/getting-started",
-    clicks: 5320,
-    unique: 3110,
-    status: "active",
-    createdAt: "2026-06-08",
-  },
-  {
-    id: "3",
-    shortUrl: "clk.mp/sale",
-    originalUrl: "https://shop.acme.com/summer-sale",
-    clicks: 9870,
-    unique: 6543,
-    status: "active",
-    createdAt: "2026-06-03",
-  },
-  {
-    id: "4",
-    shortUrl: "clk.mp/webinar",
-    originalUrl: "https://acme.com/events/webinar-june",
-    clicks: 2140,
-    unique: 1980,
-    status: "paused",
-    createdAt: "2026-06-01",
-  },
-  {
-    id: "5",
-    shortUrl: "clk.mp/beta",
-    originalUrl: "https://beta.acme.com/signup",
-    clicks: 780,
-    unique: 612,
-    status: "expired",
-    createdAt: "2026-05-22",
-  },
-  {
-    id: "6",
-    shortUrl: "clk.mp/hire",
-    originalUrl: "https://careers.acme.com",
-    clicks: 3320,
-    unique: 2880,
-    status: "active",
-    createdAt: "2026-05-18",
-  },
-  {
-    id: "7",
-    shortUrl: "clk.mp/blog",
-    originalUrl: "https://blog.acme.com/how-we-scaled-redis",
-    clicks: 4421,
-    unique: 3201,
-    status: "active",
-    createdAt: "2026-05-10",
-  },
-];
-
 const PAGE_SIZE = 10;
-
 const STATUS_STYLES: Record<LinkStatus, string> = {
   active: "bg-primary/15 text-primary",
   paused: "bg-muted text-muted-foreground",
   expired: "bg-destructive text-white",
 };
-
-const numberFormat = new Intl.NumberFormat("en-US");
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function StatusBadge({ status }: { status: LinkStatus }) {
   return (
@@ -149,15 +54,43 @@ function LinksTable() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return LINKS;
-    return LINKS.filter(
-      (l) =>
-        l.shortUrl.toLowerCase().includes(q) ||
-        l.originalUrl.toLowerCase().includes(q),
+  const { isLoading, data, isError } = useQuery<
+    LinkWithClickCountAndUniqueCount[]
+  >({
+    queryKey: ["recent-links"],
+    queryFn: getUserLinks,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex h-32 items-center justify-center text-muted-foreground">
+        Loading...
+      </div>
     );
-  }, [query]);
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-32 items-center justify-center text-destructive">
+        Failed to load links. Please try again later.
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex h-32 items-center justify-center text-muted-foreground">
+        No links found. Create a new link to get started.
+      </div>
+    );
+  }
+
+  const q = query.trim().toLowerCase();
+  const filtered = data.filter(
+    (l) =>
+      l.shortCode.toLowerCase().includes(q) ||
+      l.originalUrl.toLowerCase().includes(q),
+  );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -165,10 +98,6 @@ function LinksTable() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
-
-  function handleCopy(shortUrl: string) {
-    navigator.clipboard?.writeText(`https://${shortUrl}`);
-  }
 
   return (
     <div className="mt-8 overflow-hidden rounded-xl border bg-muted/40">
@@ -220,6 +149,9 @@ function LinksTable() {
             <TableHead className="h-12 px-4 text-muted-foreground">
               Created
             </TableHead>
+            <TableHead className="h-12 px-4 text-muted-foreground">
+              Updated
+            </TableHead>
             <TableHead className="h-12 w-12 px-4">
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -240,62 +172,36 @@ function LinksTable() {
             rows.map((link) => (
               <TableRow key={link.id} className="h-17.75">
                 <TableCell className="px-4 font-mono font-medium">
-                  {link.shortUrl}
+                  {link.shortCode}
                 </TableCell>
                 <TableCell className="px-4 text-muted-foreground">
                   {link.originalUrl}
                 </TableCell>
                 <TableCell className="px-4 text-right font-mono tabular-nums">
-                  {numberFormat.format(link.clicks)}
+                  {link.clicks}
                 </TableCell>
                 <TableCell className="px-4 text-right font-mono tabular-nums">
-                  {numberFormat.format(link.unique)}
+                  {link.uniqueClicks}
                 </TableCell>
                 <TableCell className="px-4">
-                  <StatusBadge status={link.status} />
+                  <StatusBadge
+                    status={
+                      new Date(link.expiresAt) > new Date()
+                        ? link.isActive
+                          ? "active"
+                          : "paused"
+                        : "expired"
+                    }
+                  />
                 </TableCell>
                 <TableCell className="whitespace-nowrap px-4 text-muted-foreground">
                   {formatDate(link.createdAt)}
                 </TableCell>
+                <TableCell className="whitespace-nowrap px-4 text-muted-foreground">
+                  {formatDate(link.updatedAt)}
+                </TableCell>
                 <TableCell className="px-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Actions for ${link.shortUrl}`}
-                      >
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onSelect={() => handleCopy(link.shortUrl)}
-                      >
-                        <Copy />
-                        Copy short link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <a
-                          href={link.originalUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <ExternalLink />
-                          Open original
-                        </a>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Pencil />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive">
-                        <Trash2 />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <LinkOptions link={link} />
                 </TableCell>
               </TableRow>
             ))

@@ -45,14 +45,7 @@ async function getUserLinks(userId: string | undefined) {
   if (!userId || userId.trim().length == 0) throw new AuthenticationError();
 
   const user = await userService.getActiveUser(userId);
-  const links = await linkRepository.getUserLinks(user.id);
-  const publicLinks: PublicLinkDto[] = [];
-
-  for (const link of links) {
-    publicLinks.push(publicLinkSchema.parse(link));
-  }
-
-  return publicLinks;
+  return await linkRepository.getUserLinks(user.id);
 }
 
 async function getLinkInfo(

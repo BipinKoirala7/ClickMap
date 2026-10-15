@@ -1,6 +1,6 @@
 "use client";
 
-import { getClicksOverTime } from "@/api/link/link";
+import { getClicksOverTime } from "@/api/analytics/overviewAnalytics";
 import { ClicksOverTime } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import {

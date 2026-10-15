@@ -58,10 +58,10 @@ export type ClicksOverTime = {
 }[];
 
 export type LinkWithClickCount = PublicLinkDto & { clicks: number };
-export type LinkWithClickCountAndUniqueClicks = LinkWithClickCount & {
+export type LinkWithClickCountAndUniqueCount = LinkWithClickCount & {
   uniqueClicks: number;
 };
-export type RecentLinks = LinkWithClickCountAndUniqueClicks[];
+export type RecentLinks = LinkWithClickCountAndUniqueCount[];
 
 // API Responses
 type RestAPIResponse<T> = {
@@ -72,28 +72,20 @@ type RestAPIResponse<T> = {
 };
 
 // User Response
-type RegisterUserResponse = RestAPIResponse<void>;
-type LoginUserResponse = RestAPIResponse<void>;
-type GetUserResponse = RestAPIResponse<PublicUserDto>;
+export type RegisterUserResponse = RestAPIResponse<void>;
+export type LoginUserResponse = RestAPIResponse<void>;
+export type GetUserResponse = RestAPIResponse<PublicUserDto>;
 
 // Link Response
-type GetLinksResponse = RestAPIResponse<PublicLinkDto[]>;
+export type GetLinkResponse = RestAPIResponse<PublicLinkDto[]>;
+export type CreateLinkResponse = RestAPIResponse<void>;
+export type GetUserLinksResponse = RestAPIResponse<
+  LinkWithClickCountAndUniqueCount[]
+>;
 
 // Analytics Response
-type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
-type ClicksOverTimeResponse = RestAPIResponse<ClicksOverTime>;
-type RecentLinksResponse = RestAPIResponse<RecentLinks>;
+export type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
+export type ClicksOverTimeResponse = RestAPIResponse<ClicksOverTime>;
+export type RecentLinksResponse = RestAPIResponse<RecentLinks>;
 
-export type {
-  PublicUserDto,
-  RegisterUserDto,
-  RegisterUserResponse,
-  LoginUserDto,
-  LoginUserResponse,
-  GetUserResponse,
-  PublicLinkDto,
-  GetLinksResponse,
-  OverviewStatsResponse,
-  ClicksOverTimeResponse,
-  RecentLinksResponse,
-};
+export type { PublicUserDto, RegisterUserDto, LoginUserDto, PublicLinkDto };

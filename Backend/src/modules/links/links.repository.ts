@@ -15,9 +15,23 @@ async function createLink(link: NewLink) {
 }
 
 async function getUserLinks(userId: string) {
-  return await db.query.links.findMany({
-    where: eq(links.userId, userId),
-  });
+  return await db
+    .select({
+      id: links.id,
+      shortCode: links.shortCode,
+      originalUrl: links.originalUrl,
+      title: links.title,
+      isActive: links.isActive,
+      clicks: count(clickEvents.linkId),
+      uniqueClicks: countDistinct(clickEvents.visitorId),
+      expiresAt: links.expiresAt,
+      createdAt: links.createdAt,
+      updatedAt: links.updatedAt,
+    })
+    .from(clickEvents)
+    .innerJoin(links, eq(clickEvents.linkId, links.id))
+    .where(and(eq(links.userId, userId)))
+    .groupBy(links.id);
 }
 
 async function getLink(linkId: string, userId: string) {

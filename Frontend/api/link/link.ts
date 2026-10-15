@@ -1,46 +1,23 @@
 import api from "@/lib/axios";
-import {
-  ClicksOverTimeResponse,
-  OverviewStatsResponse,
-  RecentLinksResponse,
-} from "@/types";
+import { GetUserLinksResponse } from "@/types";
+import { toast } from "sonner";
 
-export async function getRecentLinks() {
-  const response = await api.get<RecentLinksResponse>(
-    "/analytics/overview/recent-links",
-  );
+export async function getUserLinks() {
+  const response = await api.get<GetUserLinksResponse>("/link");
 
   if (response.status === 200) {
     return response.data.data;
   } else {
-    throw new Error(response.data.message || "Failed to fetch recent links");
+    throw new Error(response.data.message || "Failed to fetch user links");
   }
 }
 
-export async function getOverviewStats(length = 30) {
-  const response = await api.get<OverviewStatsResponse>(
-    `/analytics/overview/stats?length=${length}`,
-  );
+export async function createLink() {
+  const response = await api.post("/link", {});
 
   if (response.status === 200) {
-    return response.data.data;
+    toast.success("Link created successfully!");
   } else {
-    throw new Error(
-      response.data.message || "Failed to fetch overview analytics",
-    );
-  }
-}
-
-export async function getClicksOverTime(length = 30) {
-  const response = await api.get<ClicksOverTimeResponse>(
-    `/analytics/overview/clicks-over-time?length=${length}`,
-  );
-
-  if (response.status === 200) {
-    return response.data.data;
-  } else {
-    throw new Error(
-      response.data.message || "Failed to fetch clicks over time data",
-    );
+    toast.error(response.data.message || "Failed to create link");
   }
 }
