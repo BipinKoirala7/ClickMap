@@ -1,22 +1,22 @@
-type RegisterUserDto = {
+export type RegisterUserDto = {
   name: string;
   userName: string;
   email: string;
   password: string;
 };
 
-type LoginUserDto = {
+export type LoginUserDto = {
   email: string;
   password: string;
 };
 
-enum UserPlan {
+export enum UserPlan {
   FREE = "free",
   PRO = "pro",
   BUSINESS = "business",
 }
 
-type PublicUserDto = {
+export type PublicUserDto = {
   name: string;
   email: string;
   userName: string;
@@ -28,7 +28,14 @@ type PublicUserDto = {
 };
 
 // Link
-type PublicLinkDto = {
+export type CreateLinkDto = {
+  title: string;
+  shortCode: string;
+  originalUrl: string;
+  expiresAt: string;
+};
+
+export type PublicLinkDto = {
   id: string;
   isActive: boolean;
   createdAt: string;
@@ -87,5 +94,3 @@ export type GetUserLinksResponse = RestAPIResponse<
 export type OverviewStatsResponse = RestAPIResponse<OverviewStats>;
 export type ClicksOverTimeResponse = RestAPIResponse<ClicksOverTime>;
 export type RecentLinksResponse = RestAPIResponse<RecentLinks>;
-
-export type { PublicUserDto, RegisterUserDto, LoginUserDto, PublicLinkDto };

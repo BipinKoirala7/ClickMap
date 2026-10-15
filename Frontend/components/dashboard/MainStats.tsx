@@ -132,17 +132,17 @@ function MainStats({ length }: { length: string }) {
           </div>
         </div>
         <div className="mt-3 text-3xl font-bold text-foreground">
-          {data.click_rate}
+          {(data.click_rate * 100).toFixed(2)}%
         </div>
         <div className="mt-1 text-sm text-primary">
           {data.prev_click_rate === 0
             ? "No Activity for Previous Period"
-            : `${
+            : `${(
                 Math.abs(
                   (data.click_rate - data.prev_click_rate) /
                     data.prev_click_rate,
                 ) * 100
-              }% vs prev 30 days`}
+              ).toFixed(2)}% vs prev 30 days`}
         </div>
       </div>
     </div>

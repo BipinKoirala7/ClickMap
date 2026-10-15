@@ -1,11 +1,7 @@
 import LinksPage from "@/components/dashboard/Links/LinksPage";
 
 function page() {
-  return (
-    <div>
-      <LinksPage />
-    </div>
-  );
+  return <LinksPage />;
 }
 
 export default page;

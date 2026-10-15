@@ -1,5 +1,10 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { CreateLinkDialog } from "./CreateLinkDialog";
+import { createLink } from "@/api/link/link";
+import { CreateLinkDto } from "@/types";
 
 function LinksPageHeader() {
   return (
@@ -11,10 +16,14 @@ function LinksPageHeader() {
             Manage every short link in your workspace.
           </p>
         </div>
-        <Button size="lg" className="self-start sm:self-auto">
-          <Plus />
-          Create link
-        </Button>
+        <CreateLinkDialog
+          trigger={
+            <Button>
+              <Plus /> Create link
+            </Button>
+          }
+          onCreate={(createLinkDto: CreateLinkDto) => createLink(createLinkDto)}
+        />
       </div>
     </>
   );

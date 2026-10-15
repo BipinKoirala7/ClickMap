@@ -22,15 +22,15 @@ async function getUserLinks(userId: string) {
       originalUrl: links.originalUrl,
       title: links.title,
       isActive: links.isActive,
-      clicks: count(clickEvents.linkId),
+      clicks: count(clickEvents.id),
       uniqueClicks: countDistinct(clickEvents.visitorId),
       expiresAt: links.expiresAt,
       createdAt: links.createdAt,
       updatedAt: links.updatedAt,
     })
-    .from(clickEvents)
-    .innerJoin(links, eq(clickEvents.linkId, links.id))
-    .where(and(eq(links.userId, userId)))
+    .from(links)
+    .leftJoin(clickEvents, eq(clickEvents.linkId, links.id))
+    .where(eq(links.userId, userId))
     .groupBy(links.id);
 }
 

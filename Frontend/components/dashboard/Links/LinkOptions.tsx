@@ -1,3 +1,4 @@
+import { activateLink, deactivateLink } from "@/api/link/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -68,10 +69,25 @@ export default function LinksPage({
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" className="cursor-pointer">
-          <Trash2 />
-          Disable
-        </DropdownMenuItem>
+        {link.isActive ? (
+          <DropdownMenuItem
+            variant="destructive"
+            className="cursor-pointer"
+            onClick={() => deactivateLink(link.id)}
+          >
+            <Trash2 />
+            Deactivate
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem
+            variant="default"
+            className="cursor-pointer"
+            onClick={() => activateLink(link.id)}
+          >
+            <Trash2 />
+            Activate
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
